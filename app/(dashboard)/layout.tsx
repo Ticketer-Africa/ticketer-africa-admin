@@ -1,10 +1,6 @@
-import {
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin-sidebar";
-import { Separator } from "@/components/ui/separator";
+import { DashboardHeader } from "@/components/dashboard-header";
 
 export default function DashboardLayout({
   children,
@@ -15,10 +11,7 @@ export default function DashboardLayout({
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset>
-        <header className="flex h-14 items-center gap-2 border-b px-4">
-          <SidebarTrigger />
-          <Separator orientation="vertical" className="h-4" />
-        </header>
+        <DashboardHeader />
         <main className="flex-1 space-y-6 p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>

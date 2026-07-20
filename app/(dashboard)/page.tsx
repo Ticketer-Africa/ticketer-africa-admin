@@ -1,13 +1,21 @@
 "use client";
 
-import { Users, Calendar, Ticket, Wallet, TrendingUp, Landmark } from "lucide-react";
+import { Users, Calendar, Ticket, Wallet } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from "recharts";
-import { MetricCard } from "@/components/metric-card";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { formatPrice } from "@/lib/helpers";
 import {
   useAdminStats,
@@ -19,16 +27,46 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 const dailyChartConfig = {
-  totalProcessed: { label: "Processed", color: "hsl(var(--chart-1))" },
-  profit: { label: "Profit", color: "hsl(var(--chart-2))" },
+  totalProcessed: { label: "Processed", color: "oklch(var(--chart-1))" },
+  profit: { label: "Profit", color: "oklch(var(--chart-2))" },
 };
 
 const categoryColors = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "oklch(var(--chart-1))",
+  "oklch(var(--chart-2))",
+  "oklch(var(--chart-3))",
+  "oklch(var(--chart-4))",
+  "oklch(var(--chart-5))",
+];
+
+const ledgerRows = [
+  {
+    key: "totalProcessed" as const,
+    label: "Total processed",
+    description: "Successful purchase & resale volume, all time",
+  },
+  {
+    key: "lifetimeProfit" as const,
+    label: "Lifetime profit",
+    description: "Platform's cut, recomputed per transaction's fee",
+  },
+  {
+    key: "platformWalletBalance" as const,
+    label: "Platform wallet balance",
+    description: "Current available balance",
+  },
+];
+
+const statStripItems = [
+  { key: "users" as const, label: "Users", icon: Users, source: "stats" as const },
+  { key: "events" as const, label: "Events", icon: Calendar, source: "stats" as const },
+  { key: "tickets" as const, label: "Tickets sold", icon: Ticket, source: "stats" as const },
+  {
+    key: "totalOrganizerBalance" as const,
+    label: "Organizer wallets",
+    icon: Wallet,
+    source: "wallets" as const,
+  },
 ];
 
 export default function OverviewPage() {
@@ -39,56 +77,87 @@ export default function OverviewPage() {
     useAdminEventCategories();
   const { data: wallets, isLoading: walletsLoading } = useAdminWalletsSummary();
 
-  const isLoading = statsLoading || revenueLoading || dailyLoading || walletsLoading;
+  const isLoading =
+    statsLoading || revenueLoading || dailyLoading || walletsLoading;
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <Skeleton key={i} className="h-28 rounded-2xl" />
-        ))}
+      <div className="space-y-6">
+        <Skeleton className="h-40 rounded-xl" />
+        <Skeleton className="h-16 rounded-xl" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Total processed"
-          value={formatPrice(revenue?.totalProcessed ?? 0)}
-          icon={TrendingUp}
-        />
-        <MetricCard
-          title="Lifetime profit"
-          value={formatPrice(revenue?.lifetimeProfit ?? 0)}
-          icon={Landmark}
-          subtext="Recomputed from every transaction's fee"
-        />
-        <MetricCard
-          title="Platform wallet balance"
-          value={formatPrice(revenue?.platformWalletBalance ?? 0)}
-          icon={Wallet}
-          subtext="Current available balance"
-        />
-        <MetricCard
-          title="Organizer wallet balance"
-          value={formatPrice(wallets?.totalOrganizerBalance ?? 0)}
-          icon={Wallet}
-        />
-        <MetricCard title="Users" value={String(stats?.users ?? 0)} icon={Users} />
-        <MetricCard title="Events" value={String(stats?.events ?? 0)} icon={Calendar} />
-        <MetricCard title="Tickets sold" value={String(stats?.tickets ?? 0)} icon={Ticket} />
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+          {ledgerRows.map((row) => (
+            <div key={row.key} className="p-5">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {row.label}
+              </p>
+              <p className="mt-2 font-mono text-2xl font-medium tabular-nums">
+                {formatPrice(revenue?.[row.key] ?? 0)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {row.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap divide-x divide-border overflow-hidden rounded-xl border border-border bg-card">
+        {statStripItems.map((item) => {
+          const value =
+            item.source === "stats"
+              ? (stats?.[item.key as keyof typeof stats] ?? 0)
+              : (wallets?.[item.key as keyof typeof wallets] ?? 0);
+          const display =
+            item.key === "totalOrganizerBalance"
+              ? formatPrice(value)
+              : String(value);
+          return (
+            <div
+              key={item.key}
+              className="flex min-w-[10rem] flex-1 items-center gap-3 px-5 py-3"
+            >
+              <item.icon className="size-4 shrink-0 text-muted-foreground" />
+              <div>
+                <p className="font-mono text-sm font-medium tabular-nums">
+                  {display}
+                </p>
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <h2 className="mb-4 text-sm font-medium">Daily processed & profit</h2>
           <ChartContainer config={dailyChartConfig} className="h-64 w-full">
             <LineChart data={daily ?? []}>
-              <CartesianGrid vertical={false} />
-              <XAxis dataKey="date" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} width={40} />
+              <CartesianGrid vertical={false} stroke="oklch(var(--border))" />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontFamily: "var(--font-geist-mono)", fontSize: 11 }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                width={40}
+                tick={{ fontFamily: "var(--font-geist-mono)", fontSize: 11 }}
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line
                 type="monotone"
@@ -108,7 +177,7 @@ export default function OverviewPage() {
           </ChartContainer>
         </div>
 
-        <div className="rounded-2xl border p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <h2 className="mb-4 text-sm font-medium">Events by category</h2>
           {categoriesLoading ? (
             <Skeleton className="h-64 w-full rounded-xl" />
@@ -121,6 +190,7 @@ export default function OverviewPage() {
                   nameKey="name"
                   innerRadius={50}
                   outerRadius={90}
+                  strokeWidth={0}
                 >
                   {(categories ?? []).map((_, index) => (
                     <Cell

@@ -25,8 +25,10 @@ export default function EventsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Events</h1>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          {filtered.length} {filtered.length === 1 ? "event" : "events"}
+        </p>
         <Input
           placeholder="Search by event or organizer"
           value={query}
@@ -36,18 +38,18 @@ export default function EventsPage() {
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-96 w-full rounded-2xl" />
+        <Skeleton className="h-96 w-full rounded-xl" />
       ) : (
-        <div className="rounded-2xl border">
+        <div className="overflow-hidden rounded-xl border border-border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Event</TableHead>
                 <TableHead>Organizer</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Date</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Ticket categories</TableHead>
-                <TableHead>Active</TableHead>
+                <TableHead className="text-right">Active</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -56,20 +58,25 @@ export default function EventsPage() {
                   <TableCell>{event.name}</TableCell>
                   <TableCell>
                     {event.organizer.name}
-                    <div className="text-xs text-muted-foreground">
+                    <div className="font-mono text-xs text-muted-foreground">
                       {event.organizer.email}
                     </div>
                   </TableCell>
-                  <TableCell>{formatDate(event.date)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                    {formatDate(event.date)}
+                  </TableCell>
                   <TableCell>{event.category}</TableCell>
                   <TableCell>
                     {event.ticketCategories.map((cat) => (
-                      <div key={cat.id} className="text-xs">
+                      <div
+                        key={cat.id}
+                        className="font-mono text-xs tabular-nums text-muted-foreground"
+                      >
                         {cat.name}: {cat.minted}/{cat.maxTickets}
                       </div>
                     ))}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-right">
                     <Switch
                       checked={event.isActive}
                       onCheckedChange={() => toggleEvent.mutate(event.id)}

@@ -24,8 +24,11 @@ export default function OrganizersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Organizers</h1>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          {filtered.length}{" "}
+          {filtered.length === 1 ? "organizer" : "organizers"}
+        </p>
         <Input
           placeholder="Search by name or email"
           value={query}
@@ -35,25 +38,27 @@ export default function OrganizersPage() {
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-96 w-full rounded-2xl" />
+        <Skeleton className="h-96 w-full rounded-xl" />
       ) : (
-        <div className="rounded-2xl border">
+        <div className="overflow-hidden rounded-xl border border-border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Wallet balance</TableHead>
+                <TableHead className="text-right">Wallet balance</TableHead>
                 <TableHead>Events</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead className="text-right">Joined</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((organizer) => (
                 <TableRow key={organizer.id}>
                   <TableCell>{organizer.name}</TableCell>
-                  <TableCell>{organizer.email}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {organizer.email}
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
                     {formatPrice(organizer.wallet?.balance ?? 0)}
                   </TableCell>
                   <TableCell>
@@ -69,7 +74,9 @@ export default function OrganizersPage() {
                       </div>
                     ))}
                   </TableCell>
-                  <TableCell>{formatDate(organizer.createdAt)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                    {formatDate(organizer.createdAt)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

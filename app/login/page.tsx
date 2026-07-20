@@ -27,56 +27,72 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border bg-card p-8 shadow-sm">
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-semibold">Admin sign in</h1>
-          <p className="text-sm text-muted-foreground">
-            Ticketera Africa staff only
-          </p>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div className="flex size-10 items-center justify-center rounded-md border border-border font-mono text-sm text-primary">
+            TA
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight">
+              Ticketera Admin
+            </h1>
+            <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+              Staff access only
+            </p>
+          </div>
         </div>
 
-        {unauthorized && (
-          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            That account doesn&apos;t have admin access.
-          </p>
-        )}
-
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          {loginMutation.isError && (
-            <p className="text-sm text-destructive">
-              Invalid email or password.
+        <div className="space-y-5 rounded-xl border border-border bg-card p-6">
+          {unauthorized && (
+            <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              That account doesn&apos;t have admin access.
             </p>
           )}
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loginMutation.isPending}
-          >
-            {loginMutation.isPending ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-xs">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-xs">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            {loginMutation.isError && (
+              <p className="text-sm text-destructive">
+                Invalid email or password.
+              </p>
+            )}
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? "Signing in..." : "Sign in"}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

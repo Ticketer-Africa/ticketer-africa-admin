@@ -25,8 +25,10 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Users</h1>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          {filtered.length} {filtered.length === 1 ? "user" : "users"}
+        </p>
         <Input
           placeholder="Search by name or email"
           value={query}
@@ -36,9 +38,9 @@ export default function UsersPage() {
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-96 w-full rounded-2xl" />
+        <Skeleton className="h-96 w-full rounded-xl" />
       ) : (
-        <div className="rounded-2xl border">
+        <div className="overflow-hidden rounded-xl border border-border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -46,9 +48,9 @@ export default function UsersPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Verified</TableHead>
-                <TableHead>Events attended</TableHead>
-                <TableHead>Total spent</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead className="text-right">Events attended</TableHead>
+                <TableHead className="text-right">Total spent</TableHead>
+                <TableHead className="text-right">Joined</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -59,14 +61,22 @@ export default function UsersPage() {
                       {user.name}
                     </Link>
                   </TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {user.email}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline">{user.role}</Badge>
                   </TableCell>
                   <TableCell>{user.isVerified ? "Yes" : "No"}</TableCell>
-                  <TableCell>{user.eventsCount}</TableCell>
-                  <TableCell>{formatPrice(user.totalSpent)}</TableCell>
-                  <TableCell>{formatDate(user.createdAt)}</TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {user.eventsCount}
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {formatPrice(user.totalSpent)}
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                    {formatDate(user.createdAt)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -33,8 +33,11 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Transactions</h1>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          {filtered.length}{" "}
+          {filtered.length === 1 ? "transaction" : "transactions"}
+        </p>
         <Input
           placeholder="Search by user or reference"
           value={query}
@@ -44,9 +47,9 @@ export default function TransactionsPage() {
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-96 w-full rounded-2xl" />
+        <Skeleton className="h-96 w-full rounded-xl" />
       ) : (
-        <div className="rounded-2xl border">
+        <div className="overflow-hidden rounded-xl border border-border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -54,30 +57,38 @@ export default function TransactionsPage() {
                 <TableHead>User</TableHead>
                 <TableHead>Event</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((txn) => (
                 <TableRow key={txn.id}>
-                  <TableCell>{txn.reference}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {txn.reference}
+                  </TableCell>
                   <TableCell>
                     {txn.user.name}
-                    <div className="text-xs text-muted-foreground">
+                    <div className="font-mono text-xs text-muted-foreground">
                       {txn.user.email}
                     </div>
                   </TableCell>
                   <TableCell>{txn.event?.name ?? "—"}</TableCell>
-                  <TableCell>{txn.type}</TableCell>
-                  <TableCell>{formatPrice(txn.amount)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {txn.type}
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {formatPrice(txn.amount)}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={statusVariant[txn.status] ?? "outline"}>
                       {txn.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{formatDate(txn.createdAt)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                    {formatDate(txn.createdAt)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

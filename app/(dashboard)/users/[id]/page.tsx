@@ -21,7 +21,7 @@ export default function UserDetailPage() {
   const { data: user, isLoading } = useAdminUserDetail(params.id);
 
   if (isLoading) {
-    return <Skeleton className="h-96 w-full rounded-2xl" />;
+    return <Skeleton className="h-96 w-full rounded-xl" />;
   }
 
   if (!user) {
@@ -32,38 +32,44 @@ export default function UserDetailPage() {
     <div className="space-y-6">
       <Link
         href="/users"
-        className="flex items-center gap-1 text-sm text-muted-foreground hover:underline"
+        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline"
       >
         <ArrowLeft className="size-4" /> Back to users
       </Link>
 
       <div>
-        <h1 className="text-xl font-semibold">{user.name}</h1>
-        <p className="text-sm text-muted-foreground">{user.email}</p>
+        <h2 className="text-lg font-semibold tracking-tight">{user.name}</h2>
+        <p className="font-mono text-sm text-muted-foreground">
+          {user.email}
+        </p>
         <Badge variant="outline" className="mt-2">
           {user.role}
         </Badge>
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-medium">Tickets</h2>
-        <div className="rounded-2xl border">
+        <h3 className="mb-2 text-sm font-medium">Tickets</h3>
+        <div className="overflow-hidden rounded-xl border border-border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Code</TableHead>
                 <TableHead>Event</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Purchased</TableHead>
+                <TableHead className="text-right">Purchased</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {user.tickets.map((ticket) => (
                 <TableRow key={ticket.id}>
-                  <TableCell>{ticket.code}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {ticket.code}
+                  </TableCell>
                   <TableCell>{ticket.event?.name ?? "—"}</TableCell>
                   <TableCell>{ticket.ticketCategory?.name ?? "—"}</TableCell>
-                  <TableCell>{formatDate(ticket.createdAt)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                    {formatDate(ticket.createdAt)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -72,28 +78,34 @@ export default function UserDetailPage() {
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-medium">Transactions</h2>
-        <div className="rounded-2xl border">
+        <h3 className="mb-2 text-sm font-medium">Transactions</h3>
+        <div className="overflow-hidden rounded-xl border border-border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Reference</TableHead>
                 <TableHead>Event</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {user.transactions.map((txn) => (
                 <TableRow key={txn.id}>
-                  <TableCell>{txn.reference}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {txn.reference}
+                  </TableCell>
                   <TableCell>{txn.event?.name ?? "—"}</TableCell>
-                  <TableCell>{formatPrice(txn.amount)}</TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {formatPrice(txn.amount)}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline">{txn.status}</Badge>
                   </TableCell>
-                  <TableCell>{formatDate(txn.createdAt)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                    {formatDate(txn.createdAt)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
