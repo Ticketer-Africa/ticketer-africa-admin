@@ -1,5 +1,10 @@
 import nextConfig from "eslint-config-next";
 
-const config = [...nextConfig];
+const config = [
+  {
+    ignores: ["components/ui/**", "hooks/use-mobile.tsx"],
+  },
+  ...nextConfig,
+];
 
 export default config;
