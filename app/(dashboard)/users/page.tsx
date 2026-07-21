@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +18,7 @@ import { useTableSearch } from "@/lib/use-table-search";
 import { formatPrice, formatDate } from "@/lib/helpers";
 
 export default function UsersPage() {
+  const router = useRouter();
   const { data: users, isLoading } = useAdminUsers();
   const { query, setQuery, filtered } = useTableSearch(
     users,
@@ -55,7 +57,11 @@ export default function UsersPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow
+                  key={user.id}
+                  onClick={() => router.push(`/users/${user.id}`)}
+                  className="cursor-pointer"
+                >
                   <TableCell>
                     <Link href={`/users/${user.id}`} className="hover:underline">
                       {user.name}

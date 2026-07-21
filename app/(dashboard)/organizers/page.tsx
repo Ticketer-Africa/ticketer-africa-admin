@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +18,7 @@ import { useTableSearch } from "@/lib/use-table-search";
 import { formatPrice, formatDate } from "@/lib/helpers";
 
 export default function OrganizersPage() {
+  const router = useRouter();
   const { data: organizers, isLoading } = useAdminOrganizers();
   const { query, setQuery, filtered } = useTableSearch(
     organizers,
@@ -54,7 +56,11 @@ export default function OrganizersPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((organizer) => (
-                <TableRow key={organizer.id}>
+                <TableRow
+                  key={organizer.id}
+                  onClick={() => router.push(`/organizers/${organizer.id}`)}
+                  className="cursor-pointer"
+                >
                   <TableCell>
                     <Link
                       href={`/organizers/${organizer.id}`}

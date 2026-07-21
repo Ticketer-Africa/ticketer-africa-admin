@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +18,7 @@ import { useTableSearch } from "@/lib/use-table-search";
 import { formatDate } from "@/lib/helpers";
 
 export default function EventsPage() {
+  const router = useRouter();
   const { data: events, isLoading } = useAdminEvents();
   const toggleEvent = useToggleAdminEvent();
   const { query, setQuery, filtered } = useTableSearch(
@@ -54,7 +56,11 @@ export default function EventsPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((event) => (
-                <TableRow key={event.id}>
+                <TableRow
+                  key={event.id}
+                  onClick={() => router.push(`/events/${event.id}`)}
+                  className="cursor-pointer"
+                >
                   <TableCell>
                     <Link href={`/events/${event.id}`} className="hover:underline">
                       {event.name}
@@ -70,7 +76,10 @@ export default function EventsPage() {
                     {formatDate(event.date)}
                   </TableCell>
                   <TableCell>{event.category}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell
+                    className="text-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Switch
                       checked={event.isActive}
                       onCheckedChange={() => toggleEvent.mutate(event.id)}

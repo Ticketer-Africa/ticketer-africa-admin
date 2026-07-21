@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +27,7 @@ const statusVariant: Record<
 };
 
 export default function TransactionsPage() {
+  const router = useRouter();
   const { data: transactions, isLoading } = useAdminTransactions();
   const { query, setQuery, filtered } = useTableSearch(
     transactions,
@@ -65,7 +67,11 @@ export default function TransactionsPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((txn) => (
-                <TableRow key={txn.id}>
+                <TableRow
+                  key={txn.id}
+                  onClick={() => router.push(`/transactions/${txn.id}`)}
+                  className="cursor-pointer"
+                >
                   <TableCell>
                     <Link
                       href={`/transactions/${txn.id}`}
