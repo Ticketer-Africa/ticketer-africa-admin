@@ -23,6 +23,7 @@ import {
   useAdminDailyRevenue,
   useAdminEventCategories,
   useAdminWalletsSummary,
+  useAdminKoraBalance,
 } from "@/services/admin/metrics.queries";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -76,6 +77,11 @@ export default function OverviewPage() {
   const { data: categories, isLoading: categoriesLoading } =
     useAdminEventCategories();
   const { data: wallets, isLoading: walletsLoading } = useAdminWalletsSummary();
+  const {
+    data: koraBalance,
+    isLoading: koraLoading,
+    isError: koraError,
+  } = useAdminKoraBalance();
 
   const isLoading =
     statsLoading || revenueLoading || dailyLoading || walletsLoading;
@@ -96,7 +102,7 @@ export default function OverviewPage() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+        <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-4 lg:divide-x lg:divide-y-0">
           {ledgerRows.map((row) => (
             <div key={row.key} className="p-5">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -110,6 +116,27 @@ export default function OverviewPage() {
               </p>
             </div>
           ))}
+          <div className="p-5">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Korapay balance (live)
+            </p>
+            {koraLoading ? (
+              <Skeleton className="mt-2 h-8 w-32" />
+            ) : koraError ? (
+              <p className="mt-2 text-2xl font-medium text-muted-foreground">
+                Unavailable
+              </p>
+            ) : (
+              <p className="mt-2 font-mono text-2xl font-medium tabular-nums">
+                {formatPrice(koraBalance?.NGN?.availableBalance ?? 0)}
+              </p>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              {koraError
+                ? "Could not reach Korapay"
+                : `Pending: ${formatPrice(koraBalance?.NGN?.pendingBalance ?? 0)}`}
+            </p>
+          </div>
         </div>
       </div>
 
