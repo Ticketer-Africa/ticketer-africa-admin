@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,8 +66,13 @@ export default function TransactionsPage() {
             <TableBody>
               {filtered.map((txn) => (
                 <TableRow key={txn.id}>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    {txn.reference}
+                  <TableCell>
+                    <Link
+                      href={`/transactions/${txn.id}`}
+                      className="font-mono text-xs text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                      {txn.reference}
+                    </Link>
                   </TableCell>
                   <TableCell>
                     {txn.user.name}
