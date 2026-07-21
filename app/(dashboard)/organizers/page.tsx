@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,7 +55,14 @@ export default function OrganizersPage() {
             <TableBody>
               {filtered.map((organizer) => (
                 <TableRow key={organizer.id}>
-                  <TableCell>{organizer.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/organizers/${organizer.id}`}
+                      className="hover:underline"
+                    >
+                      {organizer.name}
+                    </Link>
+                  </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {organizer.email}
                   </TableCell>
