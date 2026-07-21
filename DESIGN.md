@@ -97,7 +97,7 @@ amounts, counts, dates in tables, IDs/references, chart axis labels. This is
 the single biggest lever for the "ledger, not SaaS" feel — figures get
 tabular alignment and a technical, precise texture that generic admin
 templates don't bother with. Both ship via the `geist` package (already used
-elsewhere in the Ticketera Africa stack), loaded locally via `next/font`, no
+elsewhere in the Ticketer Africa stack), loaded locally via `next/font`, no
 external font request.
 
 - Page titles: Geist Sans, semibold, tight tracking.

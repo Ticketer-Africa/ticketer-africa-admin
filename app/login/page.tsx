@@ -35,7 +35,7 @@ function LoginForm() {
           </div>
           <div>
             <h1 className="text-lg font-semibold tracking-tight">
-              Ticketera Admin
+              Ticketer Admin
             </h1>
             <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
               Staff access only

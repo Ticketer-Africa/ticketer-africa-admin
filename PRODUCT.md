@@ -6,7 +6,7 @@ product
 
 ## Users
 
-Ticketera Africa internal staff with `ADMIN`/`SUPERADMIN` roles — the platform
+Ticketer Africa internal staff with `ADMIN`/`SUPERADMIN` roles — the platform
 operations team, not consumer-facing users and not event organizers (who have
 their own separate dashboard in `frontend/`). They use this daily or several
 times a week, at a desk, to check on the health of the platform: how much
@@ -17,7 +17,7 @@ transactions/organizers when something needs a closer look or an action
 
 ## Product Purpose
 
-An internal admin dashboard for Ticketera Africa's ticketing platform. It
+An internal admin dashboard for Ticketer Africa's ticketing platform. It
 gives staff visibility into platform-wide financial and operational metrics
 (volume processed, lifetime profit, platform wallet balance, organizer wallet
 balances, ticket sales) and lets them manage the platform's core entities
@@ -51,7 +51,7 @@ from the person commissioning this: "don't let it be generic."
   numeric/monospace treatment for figures over illustrative or purely
   decorative elements. This is a ledger, not a landing page.
 - **A point of view, not a template.** The palette and type system should be
-  identifiably Ticketera Africa's own choice, not swappable with any other
+  identifiably Ticketer Africa's own choice, not swappable with any other
   admin tool's default theme.
 - **Density respects expertise.** Staff use this daily and know the domain.
   Prefer information-dense, scannable layouts over generously-padded,

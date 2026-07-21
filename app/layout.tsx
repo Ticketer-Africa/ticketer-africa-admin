@@ -5,8 +5,8 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Ticketera Africa Admin",
-  description: "Internal admin dashboard for Ticketera Africa",
+  title: "Ticketer Africa Admin",
+  description: "Internal admin dashboard for Ticketer Africa",
 };
 
 export default function RootLayout({
