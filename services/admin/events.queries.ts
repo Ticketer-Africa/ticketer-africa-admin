@@ -42,3 +42,10 @@ export const useToggleAdminEvent = () => {
     },
   });
 };
+
+export const useAdminEventDetail = (id: string) =>
+  useQuery({
+    queryKey: ["admin", "events", id],
+    queryFn: () => eventsAPI.getEventDetail(id),
+    enabled: !!id,
+  });

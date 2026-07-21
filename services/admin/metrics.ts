@@ -6,6 +6,7 @@ import {
   AdminDailyRevenue,
   AdminEventCategoryBreakdown,
   AdminWalletsSummary,
+  AdminKoraBalance,
 } from "@/types/admin.type";
 
 export const getStats = async (): Promise<AdminStats> => {
@@ -32,5 +33,10 @@ export const getEventCategories = async (): Promise<
 
 export const getWalletsSummary = async (): Promise<AdminWalletsSummary> => {
   const res = await Axios.get(buildEndpoint("v1", "admin/wallets/summary"));
+  return res.data;
+};
+
+export const getKoraBalance = async (): Promise<AdminKoraBalance> => {
+  const res = await Axios.get(buildEndpoint("v1", "admin/kora-balance"));
   return res.data;
 };

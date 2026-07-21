@@ -24,3 +24,11 @@ export const useAdminWalletsSummary = () =>
     queryKey: ["admin", "wallets", "summary"],
     queryFn: metricsAPI.getWalletsSummary,
   });
+
+export const useAdminKoraBalance = () =>
+  useQuery({
+    queryKey: ["admin", "kora-balance"],
+    queryFn: metricsAPI.getKoraBalance,
+    staleTime: 60 * 1000,
+    retry: 1,
+  });

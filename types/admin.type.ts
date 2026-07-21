@@ -109,3 +109,76 @@ export interface AdminEventCategoryBreakdown {
 export interface AdminWalletsSummary {
   totalOrganizerBalance: number;
 }
+
+export interface AdminEventTransaction {
+  id: string;
+  reference: string;
+  amount: number;
+  type: string;
+  status: string;
+  createdAt: string;
+  user: { id: string; name: string; email: string };
+}
+
+export interface AdminEventDetail {
+  event: AdminEvent & {
+    bannerUrl: string | null;
+    description: string | null;
+    slug: string;
+  };
+  transactions: AdminEventTransaction[];
+  totalProcessed: number;
+  profit: number;
+}
+
+export interface AdminTransactionTicket {
+  ticket: {
+    id: string;
+    code: string;
+    isUsed: boolean;
+  };
+}
+
+export interface AdminTransactionDetail {
+  id: string;
+  reference: string;
+  amount: number;
+  baseAmount: number | null;
+  discountAmount: number | null;
+  type: "PURCHASE" | "RESALE" | "WITHDRAW" | "FUND";
+  status: "PENDING" | "SUCCESS" | "FAILED";
+  createdAt: string;
+  user: { id: string; name: string; email: string };
+  event: { id: string; name: string } | null;
+  discountCode: { code: string } | null;
+  tickets: AdminTransactionTicket[];
+}
+
+export interface AdminOrganizerEventDetail {
+  id: string;
+  name: string;
+  date: string;
+  category: string;
+  isActive: boolean;
+  ticketCategories: AdminTicketCategory[];
+}
+
+export interface AdminOrganizerDetail {
+  organizer: {
+    id: string;
+    name: string;
+    email: string;
+    createdAt: string;
+    wallet: { balance: number | string } | null;
+    events: AdminOrganizerEventDetail[];
+  };
+  totalProcessed: number;
+  profit: number;
+}
+
+export interface AdminKoraBalance {
+  [currency: string]: {
+    availableBalance: number;
+    pendingBalance: number;
+  };
+}
