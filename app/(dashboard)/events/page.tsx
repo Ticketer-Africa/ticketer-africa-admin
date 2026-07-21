@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,14 +49,17 @@ export default function EventsPage() {
                 <TableHead>Organizer</TableHead>
                 <TableHead className="text-right">Date</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Ticket categories</TableHead>
                 <TableHead className="text-right">Active</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((event) => (
                 <TableRow key={event.id}>
-                  <TableCell>{event.name}</TableCell>
+                  <TableCell>
+                    <Link href={`/events/${event.id}`} className="hover:underline">
+                      {event.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     {event.organizer.name}
                     <div className="font-mono text-xs text-muted-foreground">
@@ -66,16 +70,6 @@ export default function EventsPage() {
                     {formatDate(event.date)}
                   </TableCell>
                   <TableCell>{event.category}</TableCell>
-                  <TableCell>
-                    {event.ticketCategories.map((cat) => (
-                      <div
-                        key={cat.id}
-                        className="font-mono text-xs tabular-nums text-muted-foreground"
-                      >
-                        {cat.name}: {cat.minted}/{cat.maxTickets}
-                      </div>
-                    ))}
-                  </TableCell>
                   <TableCell className="text-right">
                     <Switch
                       checked={event.isActive}
