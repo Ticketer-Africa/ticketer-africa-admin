@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,6 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { useAdminEventDetail } from "@/services/admin/events.queries";
 import { formatPrice, formatDate } from "@/lib/helpers";
 
@@ -37,7 +38,7 @@ export default function EventDetailPage() {
         href="/events"
         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline"
       >
-        <ArrowLeft className="size-4" /> Back to events
+        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" /> Back to events
       </Link>
 
       <div className="flex items-start gap-4">
@@ -58,7 +59,7 @@ export default function EventDetailPage() {
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            {formatDate(event.date)} · {event.location ?? "—"} · {event.category}
+            {formatDate(event.date)} · {event.venueName ?? "—"} · {event.category}
           </p>
           <p className="text-sm text-muted-foreground">
             Organizer: {event.organizer.name} ({event.organizer.email})
@@ -122,6 +123,69 @@ export default function EventDetailPage() {
             </TableBody>
           </Table>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium">Layout & Page Content</h3>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">{event.layout.replace("_", " ")}</Badge>
+            {process.env.NEXT_PUBLIC_FRONTEND_URL && (
+              <a
+                href={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/events/${event.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground underline hover:text-foreground"
+              >
+                View public page
+              </a>
+            )}
+          </div>
+        </div>
+
+        {!!event.lineup?.length && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">Lineup</p>
+            <p className="text-sm">{event.lineup.map((a) => a.name).join(", ")}</p>
+          </div>
+        )}
+
+        {!!event.faq?.length && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">FAQ</p>
+            <ul className="text-sm space-y-1">
+              {event.faq.map((item) => (
+                <li key={item.id}>
+                  <span className="font-medium">{item.question}</span> — {item.answer}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {!!event.goodToKnow?.length && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">Good To Know</p>
+            <ul className="text-sm list-disc list-inside">
+              {event.goodToKnow.map((point) => (
+                <li key={point.id}>{point.text}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {!!event.timelineSlots?.length && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">Show Timeline</p>
+            <ul className="text-sm space-y-1">
+              {event.timelineSlots.map((slot) => (
+                <li key={slot.id}>
+                  {slot.time} · {slot.stage} · {slot.performer}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div>

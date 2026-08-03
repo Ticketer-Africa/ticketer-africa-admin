@@ -4,16 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
-  LayoutDashboard,
-  Users,
-  Calendar,
-  Receipt,
-  Building2,
-  LogOut,
-  Moon,
-  Sun,
-} from "lucide-react";
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -24,15 +14,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Building02Icon, Calendar01Icon, DashboardSquare01Icon, Logout03Icon, Moon02Icon, QrCodeScanIcon, ReceiptDollarIcon, Sun01Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/lib/auth-context";
 
 const navItems = [
-  { name: "Overview", href: "/", icon: LayoutDashboard },
-  { name: "Users", href: "/users", icon: Users },
-  { name: "Events", href: "/events", icon: Calendar },
-  { name: "Transactions", href: "/transactions", icon: Receipt },
-  { name: "Organizers", href: "/organizers", icon: Building2 },
+  { name: "Overview", href: "/", icon: DashboardSquare01Icon },
+  { name: "Scan Tickets", href: "/scan-tickets", icon: QrCodeScanIcon },
+  { name: "Users", href: "/users", icon: UserGroupIcon },
+  { name: "Events", href: "/events", icon: Calendar01Icon },
+  { name: "Transactions", href: "/transactions", icon: ReceiptDollarIcon },
+  { name: "Organizers", href: "/organizers", icon: Building02Icon },
 ];
 
 export function AdminSidebar() {
@@ -70,7 +63,7 @@ export function AdminSidebar() {
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={isActive}>
                       <Link href={item.href}>
-                        <item.icon className="size-4" />
+                        <HugeiconsIcon icon={item.icon} className="size-4" />
                         <span>{item.name}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -101,14 +94,14 @@ export function AdminSidebar() {
             className="flex size-8 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/60 outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             {resolvedTheme === "dark" ? (
-              <Sun className="size-4" />
+              <HugeiconsIcon icon={Sun01Icon} className="size-4" />
             ) : (
-              <Moon className="size-4" />
+              <HugeiconsIcon icon={Moon02Icon} className="size-4" />
             )}
           </button>
         </div>
         <SidebarMenuButton onClick={logout}>
-          <LogOut className="size-4" />
+          <HugeiconsIcon icon={Logout03Icon} className="size-4" />
           <span>Log out</span>
         </SidebarMenuButton>
       </SidebarFooter>

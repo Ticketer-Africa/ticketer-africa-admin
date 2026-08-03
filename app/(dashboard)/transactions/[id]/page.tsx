@@ -2,7 +2,6 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { useAdminTransactionDetail } from "@/services/admin/transactions.queries";
 import { formatPrice, formatDate } from "@/lib/helpers";
 
@@ -43,7 +44,7 @@ export default function TransactionDetailPage() {
         href="/transactions"
         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline"
       >
-        <ArrowLeft className="size-4" /> Back to transactions
+        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" /> Back to transactions
       </Link>
 
       <div>

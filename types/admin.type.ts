@@ -42,15 +42,28 @@ export interface AdminTicketCategory {
   minted: number;
 }
 
+export type AdminEventLayout =
+  | "HERO_OVERLAY"
+  | "SPLIT_SCREEN"
+  | "EDITORIAL"
+  | "TICKET_FIRST"
+  | "TIMELINE";
+
 export interface AdminEvent {
   id: string;
   name: string;
   date: string;
-  location: string | null;
+  venueName: string | null;
+  venueAddress: string | null;
   category: string;
   isActive: boolean;
+  layout: AdminEventLayout;
   organizer: { id: string; name: string; email: string };
   ticketCategories: AdminTicketCategory[];
+  lineup?: { id: string; name: string }[];
+  faq?: { id: string; question: string; answer: string }[];
+  goodToKnow?: { id: string; text: string }[];
+  timelineSlots?: { id: string; time: string; stage: string; performer: string }[];
 }
 
 export interface AdminTransaction {

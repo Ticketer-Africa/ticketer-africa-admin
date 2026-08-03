@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 
 const titles: Record<string, string> = {
   "/": "Overview",
+  "/scan-tickets": "Scan Tickets",
   "/users": "Users",
   "/events": "Events",
   "/transactions": "Transactions",

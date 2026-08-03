@@ -1,11 +1,12 @@
 "use client";
 
-import { Users, Calendar, Ticket, Wallet } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Calendar01Icon, Ticket01Icon, UserGroupIcon, Wallet01Icon } from "@hugeicons/core-free-icons";
 import {
   LineChart,
   Line,
@@ -59,13 +60,13 @@ const ledgerRows = [
 ];
 
 const statStripItems = [
-  { key: "users" as const, label: "Users", icon: Users, source: "stats" as const },
-  { key: "events" as const, label: "Events", icon: Calendar, source: "stats" as const },
-  { key: "tickets" as const, label: "Tickets sold", icon: Ticket, source: "stats" as const },
+  { key: "users" as const, label: "Users", icon: UserGroupIcon, source: "stats" as const },
+  { key: "events" as const, label: "Events", icon: Calendar01Icon, source: "stats" as const },
+  { key: "tickets" as const, label: "Tickets sold", icon: Ticket01Icon, source: "stats" as const },
   {
     key: "totalOrganizerBalance" as const,
     label: "Organizer wallets",
-    icon: Wallet,
+    icon: Wallet01Icon,
     source: "wallets" as const,
   },
 ];
@@ -155,7 +156,7 @@ export default function OverviewPage() {
               key={item.key}
               className="flex min-w-[10rem] flex-1 items-center gap-3 px-5 py-3"
             >
-              <item.icon className="size-4 shrink-0 text-muted-foreground" />
+              <HugeiconsIcon icon={item.icon} className="size-4 shrink-0 text-muted-foreground" />
               <div>
                 <p className="font-mono text-sm font-medium tabular-nums">
                   {display}

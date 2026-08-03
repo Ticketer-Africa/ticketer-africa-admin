@@ -2,7 +2,6 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { useAdminUserDetail } from "@/services/admin/users.queries";
 import { formatPrice, formatDate } from "@/lib/helpers";
 
@@ -34,7 +35,7 @@ export default function UserDetailPage() {
         href="/users"
         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:underline"
       >
-        <ArrowLeft className="size-4" /> Back to users
+        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" /> Back to users
       </Link>
 
       <div>
