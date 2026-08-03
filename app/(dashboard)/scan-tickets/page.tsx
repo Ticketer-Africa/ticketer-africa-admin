@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +24,14 @@ import {
 import type { TicketVerifyResult } from "@/types/tickets.type";
 
 export default function ScanTicketsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ScanTicketsContent />
+    </Suspense>
+  );
+}
+
+function ScanTicketsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
