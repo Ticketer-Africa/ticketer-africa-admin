@@ -9,13 +9,14 @@ export async function proxy(req: NextRequest) {
   }
 
   const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const sessionCookie = req.cookies.get("ticketer_sid")?.value;
+  const sessionCookie = req.cookies.get("ticketer_admin_sid")?.value;
 
   try {
     const res = await fetch(`${apiBase}/v1/auth/me`, {
       method: "GET",
       headers: {
-        Cookie: sessionCookie ? `ticketer_sid=${sessionCookie}` : "",
+        Cookie: sessionCookie ? `ticketer_admin_sid=${sessionCookie}` : "",
+        "x-ticketer-app": "admin",
       },
     });
 

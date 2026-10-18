@@ -7,6 +7,8 @@ const Axios = axios.create({
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
+    // Tells the API to use the admin session, separate from the main app's.
+    "x-ticketer-app": "admin",
   },
 });
 
