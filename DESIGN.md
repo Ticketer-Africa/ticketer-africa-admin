@@ -45,11 +45,11 @@ starting values to pass contrast.
 | `--warning` | 0.525 0.12 68 * | 0.8 0.14 80 | |
 | `--info` | 0.515 0.13 245 * | 0.72 0.12 245 | |
 | `--*-foreground` on semantic fills | 0.99 0 0 | dark ink of the same hue (L 0.2–0.22) | |
-| `--chart-1` | 0.57 0.155 37 | 0.7 0.14 37 | key series (terracotta) |
-| `--chart-2` | 0.6 0.08 250 | 0.72 0.08 250 | slate blue |
-| `--chart-3` | 0.53 0.13 155 | 0.72 0.15 155 | green |
-| `--chart-4` | 0.62 0.14 70 | 0.8 0.14 80 | amber |
-| `--chart-5` | 0.6 0.12 300 | 0.72 0.12 300 | violet |
+| `--chart-1` | 0.57 0.155 37 | 0.665 0.14 37 * | key series (terracotta) |
+| `--chart-2` | 0.62 0.105 250 * | 0.665 0.105 250 * | slate blue |
+| `--chart-3` | 0.53 0.13 155 | 0.72 0.15 155 | green (not used for series) |
+| `--chart-4` | 0.62 0.14 70 | 0.8 0.14 80 | amber (not used for series) |
+| `--chart-5` | 0.46 0.14 300 * | 0.55 0.13 300 * | violet |
 
 Light success / warning / info were darkened (from 0.53 / 0.62 / 0.53) so
 their text passes 4.5:1 on a 10% tint of themselves, which is how status
@@ -89,6 +89,37 @@ they're decoration, not the only cue. Anything whose boundary *is* the cue
 ring is terracotta at 4.6:1 (light) and 6.8:1 (dark). Invalid controls
 (`aria-invalid="true"`) switch to a crimson border, plus a crimson ring on
 focus.
+
+### Charts (Task 3)
+
+Categorical order is **chart-1 → chart-2 → chart-5** (terracotta, slate,
+violet), assigned in that order and never cycled. Green and amber stay out of
+series colours because they read as success and warning. The values marked *
+above were moved so the three slots pass the dataviz palette validator
+(`validate_palette.js --pairs all`, since donut segments all touch):
+
+| Check | Light (on #ffffff) | Dark (on #13161c) |
+|---|---|---|
+| Lightness band | pass (0.43–0.77) | pass (0.48–0.67) |
+| Chroma ≥ 0.10 | pass | pass |
+| CVD ΔE, worst pair | 16.1 (slate↔violet, deutan) | 11.4 (slate↔violet, deutan) |
+| Normal-vision ΔE, worst pair | 19.2 | 15.4 |
+| Contrast vs surface ≥ 3:1 | pass | pass |
+
+The old slate (C 0.08) read as grey and dark terracotta/slate sat above the
+dark lightness band. More than three series in one chart means a table or
+small multiples, not a fourth hue.
+
+- One y-axis per chart; two units (naira and counts) are two charts.
+- Lines 2px, areas a 10% wash, bars ≤ 24px with a 4px rounded end, grid and
+  axis hairlines solid in `--border`, axis text muted.
+- Every chart panel (`components/charts/chart-panel.tsx`) has a legend, a
+  Chart / Table switch, and keeps the previous render at 60% opacity while a
+  new range loads.
+- Sequential (heatmap): `--chart-1` at five alphas over the surface
+  (0.16 → 1), so dark mode gets dim-to-bright steps from the same token; zero
+  is `--muted`.
+- Tooltips: value in mono semibold first, series name muted, a short line key.
 
 ## Typography
 

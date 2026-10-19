@@ -47,10 +47,10 @@
     --info-foreground: 0.99 0 0;
 
     --chart-1: 0.57 0.155 37;
-    --chart-2: 0.6 0.08 250;
+    --chart-2: 0.62 0.105 250;
     --chart-3: 0.53 0.13 155;
     --chart-4: 0.62 0.14 70;
-    --chart-5: 0.6 0.12 300;
+    --chart-5: 0.46 0.14 300;
 
     --sidebar-background: 0.965 0.005 255;
     --sidebar-foreground: 0.33 0.015 255;
@@ -109,11 +109,11 @@
     --info: 0.72 0.12 245;
     --info-foreground: 0.2 0.04 245;
 
-    --chart-1: 0.7 0.14 37;
-    --chart-2: 0.72 0.08 250;
+    --chart-1: 0.665 0.14 37;
+    --chart-2: 0.665 0.105 250;
     --chart-3: 0.72 0.15 155;
     --chart-4: 0.8 0.14 80;
-    --chart-5: 0.72 0.12 300;
+    --chart-5: 0.55 0.13 300;
 
     --sidebar-background: 0.145 0.012 260;
     --sidebar-foreground: 0.82 0.012 255;

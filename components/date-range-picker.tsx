@@ -222,3 +222,25 @@ export function useUrlDateRange({
 
   return { range, setRange };
 }
+
+/** Analytics take a bounded range (at most 3 years), so no "All time". */
+export const ANALYTICS_PRESETS: DatePreset[] = [
+  "today",
+  "7d",
+  "30d",
+  "90d",
+  "this-month",
+  "last-month",
+  "ytd",
+];
+
+/**
+ * The overview and analytics range: `from`/`to` in the URL, the last 30
+ * days by default. An empty range (all time, from an old link) falls back to
+ * the default, since the analytics API has no all-time view.
+ */
+export function useAnalyticsRange() {
+  const { range, setRange } = useUrlDateRange({ defaultPreset: "30d" });
+  const bounded = range.from || range.to ? range : presetRange("30d");
+  return { range: bounded, setRange };
+}

@@ -19,3 +19,13 @@ export function useRecordActivity(
     enabled: Boolean(targetId),
   });
 }
+
+/** The newest admin actions anywhere, for the overview. */
+export function useRecentActivity(limit = 8) {
+  return useQuery({
+    queryKey: [...auditKey, "recent", limit],
+    queryFn: () =>
+      adminGet<Paged<AuditEntry>>("/audit", { sort: "createdAt", order: "desc", pageSize: limit }),
+    refetchInterval: 60_000,
+  });
+}

@@ -49,6 +49,22 @@ export function formatCount(n: number | null | undefined): string {
   return isNumber(n) ? countNumber.format(n) : EMPTY;
 }
 
+const compactNumber = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+/** Chart axes: 950 → "950", 12500 → "12.5K", 1250000 → "1.3M". */
+export function formatCompact(n: number | null | undefined): string {
+  return isNumber(n) ? compactNumber.format(n) : EMPTY;
+}
+
+/** Chart axes: 25000 → "₦25K", -1500 → "-₦1.5K". Never for exact amounts. */
+export function formatCompactNaira(n: number | null | undefined): string {
+  if (!isNumber(n)) return EMPTY;
+  return `${n < 0 ? "-" : ""}₦${compactNumber.format(Math.abs(n))}`;
+}
+
 type DateInput = string | number | Date | null | undefined;
 
 function toDate(value: DateInput): Date | null {

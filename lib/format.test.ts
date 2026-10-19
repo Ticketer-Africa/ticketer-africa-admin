@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatCompact,
+  formatCompactNaira,
   formatCount,
   formatDate,
   formatDateTime,
@@ -106,5 +108,22 @@ describe("formatDelta", () => {
   it("shows — when either side is missing", () => {
     expect(formatDelta(null, 100)).toEqual({ label: "—", direction: "flat" });
     expect(formatDelta(100, undefined)).toEqual({ label: "—", direction: "flat" });
+  });
+});
+
+describe("formatCompact / formatCompactNaira (chart axes)", () => {
+  it("keeps small numbers whole and shortens from 1,000 up", () => {
+    expect(formatCompact(0)).toBe("0");
+    expect(formatCompact(950)).toBe("950");
+    expect(formatCompact(1000)).toBe("1K");
+    expect(formatCompact(12_500)).toBe("12.5K");
+    expect(formatCompact(1_250_000)).toBe("1.3M");
+    expect(formatCompact(2_000_000_000)).toBe("2B");
+  });
+
+  it("puts the naira sign in front, and the minus before it", () => {
+    expect(formatCompactNaira(25_000)).toBe("₦25K");
+    expect(formatCompactNaira(-1_500)).toBe("-₦1.5K");
+    expect(formatCompactNaira(null)).toBe("—");
   });
 });
