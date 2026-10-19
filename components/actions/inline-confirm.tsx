@@ -19,16 +19,19 @@ import { useAdminAction, useKeepFocusWhenHidden } from "./use-admin-action";
  * the record changed keeps its error and never turns into another action.
  */
 
-interface InlineConfirmProps {
+interface InlineConfirmProps<T> {
   /** The button text: "Resend tickets". */
   label: string;
   /** The question: "Resend tickets to buyer@x?" Defaults to `${label}?`. */
   message?: ReactNode;
+  /** Options under the question, e.g. an "also email recipients" checkbox. */
+  children?: ReactNode;
   /** The confirm button text. Defaults to the label. */
   confirmLabel?: string;
-  onConfirm: () => Promise<unknown>;
+  onConfirm: () => Promise<T>;
   invalidate?: QueryKey[];
-  successMessage?: string;
+  /** Toast on success; a function words it from what the action returned. */
+  successMessage?: string | ((result: T) => string);
   icon?: IconSvgElement;
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
@@ -38,9 +41,10 @@ interface InlineConfirmProps {
   className?: string;
 }
 
-export function InlineConfirm({
+export function InlineConfirm<T>({
   label,
   message,
+  children,
   confirmLabel,
   onConfirm,
   invalidate,
@@ -51,7 +55,7 @@ export function InlineConfirm({
   disabled,
   available = true,
   className,
-}: InlineConfirmProps) {
+}: InlineConfirmProps<T>) {
   const [open, setOpen] = useState(false);
   const action = useAdminAction({ invalidate });
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -69,7 +73,9 @@ export function InlineConfirm({
     if (!available || action.isDone) return;
     const result = await action.run(onConfirm);
     if (result?.ok) {
-      toast.success(successMessage);
+      toast.success(
+        typeof successMessage === "function" ? successMessage(result.data) : successMessage,
+      );
       setOpen(false);
     }
   }
@@ -93,6 +99,7 @@ export function InlineConfirm({
         }}
       >
         <p className="text-sm text-foreground">{message ?? `${label}?`}</p>
+        {children}
         {!available && (
           <p className="text-sm text-muted-foreground">This no longer applies: the record changed.</p>
         )}

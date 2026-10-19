@@ -237,6 +237,18 @@ export function ActionSheet({
           if (trigger && !triggerRef.current?.isConnected && focusPageHeading()) {
             event.preventDefault();
           }
+          // Opened from the Actions menu: Radix tries the menu item that
+          // opened it, which is gone. Go back to the menu's button, or the
+          // page heading if the menu went too (no action applies any more).
+          if (!trigger) {
+            setTimeout(() => {
+              const active = document.activeElement;
+              if (active && active !== document.body) return;
+              const menu = document.querySelector<HTMLElement>("[data-actions-menu-trigger]");
+              if (menu) menu.focus({ preventScroll: true });
+              else focusPageHeading();
+            }, 0);
+          }
         }}
         onOpenAutoFocus={(event) => {
           // Land in the reason box; otherwise the first field.
