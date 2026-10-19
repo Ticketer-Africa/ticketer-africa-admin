@@ -6,32 +6,31 @@ product
 
 ## Users
 
-Ticketer Africa internal staff with `ADMIN`/`SUPERADMIN` roles — the platform
-operations team, not consumer-facing users and not event organizers (who have
-their own separate dashboard in `frontend/`). They use this daily or several
-times a week, at a desk, to check on the health of the platform: how much
-money has moved through it, how much the company has actually made, what
-organizers are holding in their wallets, and to manage users/events/
-transactions/organizers when something needs a closer look or an action
-(deactivating an event, for instance).
+Ticketer Africa's two founders (both `SUPERADMIN`), and later support staff
+with the `ADMIN` role. Not buyers and not event organizers (they have their
+own dashboard in `frontend/`). By day they sit at a laptop checking money and
+fixing problems; at night they use a phone in a dark venue, at the gate or
+answering "my tickets never came". The console has to work as well at 375px
+as at 1440px, in light and dark.
 
 ## Product Purpose
 
-An internal admin dashboard for Ticketer Africa's ticketing platform. It
-gives staff visibility into platform-wide financial and operational metrics
-(volume processed, lifetime profit, platform wallet balance, organizer wallet
-balances, ticket sales) and lets them manage the platform's core entities
-(users, events, transactions, organizers). Success looks like: staff can
-answer "how are we doing" and "is anything wrong" in seconds, and can act on
-what they find without leaving the page.
+The place where the founders run the platform without touching the database:
+see how the business is doing over any period, find any user, event, payment,
+payout or ticket in seconds, and fix what's wrong (refunds, resending
+tickets, stuck payments, wallet corrections, pausing payouts, suspending
+people) with every action gated by risk and recorded in an audit log.
+Success looks like: "how are we doing" and "is anything wrong" are answered
+in seconds, and acting on the answer is safe and leaves a trail.
 
 ## Brand Personality
 
-Serious and financial. Precise, trustworthy, ledger/terminal-inspired rather
-than generic-SaaS-friendly — this is a tool for looking at real money moving
-through a real business, not a marketing surface. References: Stripe
-Dashboard's precision, Mercury's financial seriousness, Linear's comfort with
-information density. Confident and a little austere, not playful.
+Serious and financial, built by people who live in Linear, Stripe and
+Raycast. Precise, calm and dense; a tool for real money moving through a
+real business, not a marketing surface. It carries Ticketer Africa's own
+identity quietly: the brand's terracotta as the single accent on neutrals
+tinted toward the brand's navy, the bar-chart mark, Geist throughout.
+Confident and a little austere, not playful.
 
 ## Anti-references
 
@@ -56,12 +55,18 @@ from the person commissioning this: "don't let it be generic."
 - **Density respects expertise.** Staff use this daily and know the domain.
   Prefer information-dense, scannable layouts over generously-padded,
   onboarding-style spacing.
-- **One system across all six surfaces.** Login, Overview, Users, Events,
-  Transactions, and Organizers must read as one coherent product, not six
-  independently styled pages.
+- **One system across every surface.** All of these read as one product:
+  Login; Overview; Analytics; Transactions, Refunds, Payouts, Wallets
+  (Money); Events, Organizers, Users, Tickets, Promo codes (Platform);
+  Approvals, Audit log, Team & settings (Control); Scan tickets; their
+  detail pages; the action sheets; and the command palette.
+- **Risk shows in the interface.** Actions say what they'll do, which tier
+  they are (just do it, needs a reason, needs a second founder), and only
+  appear when they're valid for the record and the viewer's role.
 
 ## Accessibility & Inclusion
 
-Standard WCAG AA: body text ≥4.5:1 contrast, large text ≥3:1, full keyboard
-navigation, and `prefers-reduced-motion` respected for any animation. No
-additional accommodations specified.
+WCAG AA: all text ≥4.5:1 in both themes (including placeholders and status
+badges), visible focus ring, full keyboard support (⌘K palette, ⌘B sidebar),
+icon-only buttons labelled, tap targets ≥40px on phones, and
+`prefers-reduced-motion` turning movement into fades.

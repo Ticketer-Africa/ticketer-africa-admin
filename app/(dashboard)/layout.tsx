@@ -1,19 +1,14 @@
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AdminSidebar } from "@/components/admin-sidebar";
-import { DashboardHeader } from "@/components/dashboard-header";
+import { cookies } from "next/headers";
+import { AppShell } from "@/components/shell/app-shell";
+import { SIDEBAR_COOKIE_NAME } from "@/components/ui/sidebar";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <SidebarProvider>
-      <AdminSidebar />
-      <SidebarInset>
-        <DashboardHeader />
-        <main className="flex-1 space-y-6 p-6">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
-  );
+  const cookieStore = await cookies();
+  const sidebarOpen = cookieStore.get(SIDEBAR_COOKIE_NAME)?.value !== "false";
+
+  return <AppShell defaultSidebarOpen={sidebarOpen}>{children}</AppShell>;
 }

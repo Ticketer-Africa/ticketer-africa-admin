@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,10 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title="Users"
+        description="Everyone with a Ticketer Africa account: buyers and organizers."
+      />
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
           {filtered.length} {filtered.length === 1 ? "user" : "users"}

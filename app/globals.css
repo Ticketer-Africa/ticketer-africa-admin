@@ -2,103 +2,199 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Ticketer Africa admin tokens. Colours are OKLCH "L C H" triplets so
+ * Tailwind can add alpha: oklch(var(--x) / <alpha-value>).
+ * Neutrals lean toward the brand navy (hue 255–260); the dark background is
+ * the brand's #0b0e14. Terracotta is the only accent. Final values and the
+ * contrast they were checked against are recorded in DESIGN.md.
+ */
 @layer base {
   :root {
-    --background: 1 0 0;
-    --foreground: 0.15 0.005 200;
-    --surface: 0.99 0.001 200;
-    --surface-foreground: 0.15 0.005 200;
-    --popover: 0.99 0.001 200;
-    --popover-foreground: 0.15 0.005 200;
-    --primary: 0.5 0.15 200;
-    --primary-foreground: 0.98 0 0;
-    --primary-solid: 0.46 0.15 200;
-    --secondary: 0.95 0.003 200;
-    --secondary-foreground: 0.15 0.005 200;
-    --muted: 0.95 0.003 200;
-    --muted-foreground: 0.49 0.01 200;
-    --accent: 0.95 0.003 200;
-    --accent-foreground: 0.15 0.005 200;
-    --warning: 0.5 0.14 75;
-    --warning-foreground: 0.98 0 0;
-    --destructive: 0.55 0.2 25;
-    --destructive-foreground: 0.98 0 0;
-    --success: 0.48 0.15 155;
-    --success-foreground: 0.98 0 0;
-    --border: 0.85 0.003 200;
-    --input: 0.62 0.003 200;
-    --ring: 0.5 0.15 200;
-    --chart-1: 0.5 0.15 200;
-    --chart-2: 0.6 0.14 75;
-    --chart-3: 0.48 0.15 155;
-    --chart-4: 0.55 0.16 290;
-    --chart-5: 0.55 0.17 15;
-    --radius: 0.75rem;
-    --sidebar-background: 0.97 0.003 200;
-    --sidebar-foreground: 0.25 0.005 200;
-    --sidebar-primary: 0.5 0.15 200;
-    --sidebar-primary-foreground: 0.98 0 0;
-    --sidebar-accent: 0.93 0.004 200;
-    --sidebar-accent-foreground: 0.15 0.005 200;
-    --sidebar-border: 0.85 0.003 200;
-    --sidebar-ring: 0.5 0.15 200;
+    color-scheme: light;
+
+    --background: 0.985 0.003 255;
+    --foreground: 0.2 0.015 255;
+    --surface: 1 0 0;
+    --surface-foreground: 0.2 0.015 255;
+    --popover: 1 0 0;
+    --popover-foreground: 0.2 0.015 255;
+
+    --muted: 0.955 0.005 255;
+    --muted-foreground: 0.47 0.015 255;
+    --accent: 0.95 0.006 255;
+    --accent-foreground: 0.2 0.015 255;
+    --secondary: 0.955 0.005 255;
+    --secondary-foreground: 0.2 0.015 255;
+
+    --border: 0.91 0.006 255;
+    --input: 0.87 0.008 255;
+    --ring: 0.57 0.155 37;
+
+    --primary: 0.57 0.155 37;
+    --primary-foreground: 0.99 0 0;
+    /* Terracotta as text on tints (badges, selected rows): 4.5:1 on a 10% tint. */
+    --primary-text: 0.525 0.15 37;
+    --destructive: 0.53 0.21 10;
+    --destructive-foreground: 0.99 0 0;
+    --success: 0.5 0.12 155;
+    --success-foreground: 0.99 0 0;
+    --warning: 0.525 0.12 68;
+    --warning-foreground: 0.99 0 0;
+    --info: 0.515 0.13 245;
+    --info-foreground: 0.99 0 0;
+
+    --chart-1: 0.57 0.155 37;
+    --chart-2: 0.6 0.08 250;
+    --chart-3: 0.53 0.13 155;
+    --chart-4: 0.62 0.14 70;
+    --chart-5: 0.6 0.12 300;
+
+    --sidebar-background: 0.965 0.005 255;
+    --sidebar-foreground: 0.33 0.015 255;
+    --sidebar-primary: 0.57 0.155 37;
+    --sidebar-primary-foreground: 0.99 0 0;
+    --sidebar-accent: 0.925 0.008 255;
+    --sidebar-accent-foreground: 0.2 0.015 255;
+    --sidebar-border: 0.91 0.006 255;
+    --sidebar-ring: 0.57 0.155 37;
+
+    --radius: 0.5rem;
+
+    --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+    --motion-ease-out: var(--ease-out);
+    --duration-state: 160ms;
+    --duration-sheet: 220ms;
+
+    --shadow-overlay: 0 1px 2px oklch(0.2 0.015 255 / 0.06),
+      0 8px 24px -4px oklch(0.2 0.015 255 / 0.12);
+
+    --top-bar-height: 3rem;
+    --tab-bar-height: 3.5rem;
   }
+
   .dark {
-    --background: 0.09 0 0;
-    --foreground: 0.95 0.004 200;
-    --surface: 0.13 0 0;
-    --surface-foreground: 0.95 0.004 200;
-    --popover: 0.13 0 0;
-    --popover-foreground: 0.95 0.004 200;
-    --primary: 0.68 0.15 200;
-    --primary-foreground: 0.98 0 0;
-    --primary-solid: 0.46 0.15 200;
-    --secondary: 0.17 0 0;
-    --secondary-foreground: 0.95 0.004 200;
-    --muted: 0.17 0 0;
-    --muted-foreground: 0.62 0.01 200;
-    --accent: 0.18 0 0;
-    --accent-foreground: 0.95 0.004 200;
-    --warning: 0.5 0.14 75;
-    --warning-foreground: 0.98 0 0;
-    --destructive: 0.6 0.19 25;
-    --destructive-foreground: 0.98 0 0;
-    --success: 0.48 0.15 155;
-    --success-foreground: 0.98 0 0;
-    --border: 0.24 0 0;
-    --input: 0.48 0 0;
-    --ring: 0.68 0.15 200;
-    --chart-1: 0.68 0.15 200;
-    --chart-2: 0.6 0.14 75;
-    --chart-3: 0.48 0.15 155;
-    --chart-4: 0.65 0.16 290;
-    --chart-5: 0.65 0.17 15;
-    --sidebar-background: 0.06 0 0;
-    --sidebar-foreground: 0.85 0.004 200;
-    --sidebar-primary: 0.68 0.15 200;
-    --sidebar-primary-foreground: 0.98 0 0;
-    --sidebar-accent: 0.12 0 0;
-    --sidebar-accent-foreground: 0.95 0.004 200;
-    --sidebar-border: 0.2 0 0;
-    --sidebar-ring: 0.68 0.15 200;
+    color-scheme: dark;
+
+    --background: 0.165 0.012 260;
+    --foreground: 0.95 0.008 255;
+    --surface: 0.2 0.013 260;
+    --surface-foreground: 0.95 0.008 255;
+    --popover: 0.215 0.014 260;
+    --popover-foreground: 0.95 0.008 255;
+
+    --muted: 0.235 0.014 260;
+    --muted-foreground: 0.7 0.015 255;
+    --accent: 0.25 0.014 260;
+    --accent-foreground: 0.95 0.008 255;
+    --secondary: 0.235 0.014 260;
+    --secondary-foreground: 0.95 0.008 255;
+
+    --border: 0.28 0.014 260;
+    --input: 0.32 0.014 260;
+    --ring: 0.7 0.14 37;
+
+    --primary: 0.7 0.14 37;
+    --primary-foreground: 0.22 0.07 35;
+    --primary-text: 0.74 0.13 37;
+    --destructive: 0.66 0.19 10;
+    --destructive-foreground: 0.2 0.05 10;
+    --success: 0.72 0.15 155;
+    --success-foreground: 0.2 0.04 155;
+    --warning: 0.8 0.14 80;
+    --warning-foreground: 0.22 0.04 70;
+    --info: 0.72 0.12 245;
+    --info-foreground: 0.2 0.04 245;
+
+    --chart-1: 0.7 0.14 37;
+    --chart-2: 0.72 0.08 250;
+    --chart-3: 0.72 0.15 155;
+    --chart-4: 0.8 0.14 80;
+    --chart-5: 0.72 0.12 300;
+
+    --sidebar-background: 0.145 0.012 260;
+    --sidebar-foreground: 0.82 0.012 255;
+    --sidebar-primary: 0.7 0.14 37;
+    --sidebar-primary-foreground: 0.22 0.07 35;
+    --sidebar-accent: 0.215 0.013 260;
+    --sidebar-accent-foreground: 0.95 0.008 255;
+    --sidebar-border: 0.24 0.013 260;
+    --sidebar-ring: 0.7 0.14 37;
+
+    --shadow-overlay: 0 1px 2px oklch(0 0 0 / 0.3),
+      0 12px 32px -6px oklch(0 0 0 / 0.55);
   }
+
   * {
     @apply border-border;
   }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-base text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
   }
-  .font-tabular {
-    font-variant-numeric: tabular-nums;
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
+
+  ::selection {
+    background: oklch(var(--primary) / 0.22);
+  }
+
+  :focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /*
+   * Reduced motion: keep fades, drop movement. tailwindcss-animate drives
+   * enter/exit through these custom properties, so zeroing them turns every
+   * slide/zoom into a plain opacity change.
+   */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      --tw-enter-translate-x: 0 !important;
+      --tw-enter-translate-y: 0 !important;
+      --tw-enter-scale: 1 !important;
+      --tw-enter-rotate: 0 !important;
+      --tw-exit-translate-x: 0 !important;
+      --tw-exit-translate-y: 0 !important;
+      --tw-exit-scale: 1 !important;
+      --tw-exit-rotate: 0 !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+@layer utilities {
+  /* Figures: amounts, counts, dates in tables, references, codes. */
+  .num {
+    font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "zero" 0;
+    letter-spacing: -0.01em;
+  }
+
+  /* Kept for existing pages until they are rebuilt. */
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .shadow-overlay {
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

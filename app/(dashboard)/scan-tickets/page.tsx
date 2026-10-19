@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -205,32 +205,32 @@ function ScanTicketsContent() {
   if (error || !ticketData) {
     return (
       <div className="mx-auto max-w-md py-4">
-        <Card className="border-destructive/40">
-          <CardHeader className="text-center">
+        <Panel className="border-destructive/40">
+          <PanelHeader className="flex-col justify-center border-b-0 pt-6 text-center">
             <HugeiconsIcon icon={CancelCircleIcon} className="mx-auto mb-4 h-16 w-16 text-destructive" />
-            <CardTitle className="text-destructive">Verification Failed</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-center">
+            <PanelTitle className="text-destructive">Verification Failed</PanelTitle>
+          </PanelHeader>
+          <PanelContent className="space-y-4 text-center">
             <p className="text-sm text-muted-foreground">{error || "Invalid ticket data"}</p>
             <div className="flex justify-center gap-2">
               <Button variant="outline" onClick={handleScanNext}>
                 Scan Another Ticket
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </PanelContent>
+        </Panel>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-2xl py-4">
-      <Card className={verification?.isValid ? "border-success/50" : "border-destructive/40"}>
-        <CardHeader className="text-center">
+      <Panel className={verification?.isValid ? "border-success/50" : "border-destructive/40"}>
+        <PanelHeader className="flex-col justify-center border-b-0 pt-6 text-center">
           {verification?.isValid ? (
             <>
               <HugeiconsIcon icon={CheckmarkCircle01Icon} className="mx-auto mb-4 h-16 w-16 text-success" />
-              <CardTitle className="text-success">Ticket Valid ✓</CardTitle>
+              <PanelTitle className="text-success">Ticket Valid ✓</PanelTitle>
               <p className="text-sm text-muted-foreground">
                 {verification.message || "This ticket has been successfully verified"}
               </p>
@@ -238,15 +238,15 @@ function ScanTicketsContent() {
           ) : (
             <>
               <HugeiconsIcon icon={CancelCircleIcon} className="mx-auto mb-4 h-16 w-16 text-destructive" />
-              <CardTitle className="text-destructive">Invalid Ticket ✗</CardTitle>
+              <PanelTitle className="text-destructive">Invalid Ticket ✗</PanelTitle>
               <p className="text-sm text-muted-foreground">
                 {verification?.message || "This ticket could not be verified"}
               </p>
             </>
           )}
-        </CardHeader>
+        </PanelHeader>
 
-        <CardContent className="space-y-6">
+        <PanelContent className="space-y-6">
           <div className="rounded-xl border border-border bg-muted p-4">
             <h3 className="mb-3 flex items-center font-semibold">
               <HugeiconsIcon icon={Alert01Icon} className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -344,8 +344,8 @@ function ScanTicketsContent() {
               Scan Next Ticket
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </PanelContent>
+      </Panel>
     </div>
   );
 }

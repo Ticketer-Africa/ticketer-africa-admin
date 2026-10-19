@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import {
   ChartContainer,
   ChartTooltip,
@@ -90,6 +91,10 @@ export default function OverviewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
+        <PageHeader
+          title="Overview"
+          description="Money through the platform, what the company has earned, and what organizers hold."
+        />
         <Skeleton className="h-40 rounded-xl" />
         <Skeleton className="h-16 rounded-xl" />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -102,6 +107,10 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        title="Overview"
+        description="Money through the platform, what the company has earned, and what organizers hold."
+      />
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-4 lg:divide-x lg:divide-y-0">
           {ledgerRows.map((row) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,10 @@ export default function EventsPage() {
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title="Events"
+        description="Every event on the platform, who runs it, and whether it's live."
+      />
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
           {filtered.length} {filtered.length === 1 ? "event" : "events"}

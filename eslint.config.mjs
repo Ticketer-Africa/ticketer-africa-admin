@@ -2,7 +2,7 @@ import nextConfig from "eslint-config-next";
 
 const config = [
   {
-    ignores: ["components/ui/**", "hooks/use-mobile.tsx"],
+    ignores: ["components/ui/**"],
   },
   ...nextConfig,
 ];
