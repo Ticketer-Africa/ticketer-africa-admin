@@ -92,4 +92,29 @@ describe("list params", () => {
     );
     expect(a).toBe("q=x&role=USER&sort=name&order=asc&page=2");
   });
+
+  it("lets a filter with a default be set to any, written as key=all", () => {
+    const approvals = defineListDefaults({
+      filters: { status: "PENDING", type: undefined },
+      sort: "createdAt",
+      order: "desc",
+    });
+    const start = listParamsFromSearch(new URLSearchParams(""), approvals);
+    expect(start.status).toBe("PENDING");
+
+    const any = withFilter(start, { status: undefined });
+    expect(any.status).toBeUndefined();
+    const search = listParamsToSearch(any, approvals);
+    expect(search).toBe("status=all");
+    expect(listParamsFromSearch(new URLSearchParams(search), approvals).status).toBeUndefined();
+
+    // Back to the default writes nothing.
+    expect(listParamsToSearch(withFilter(any, { status: "PENDING" }), approvals)).toBe("");
+  });
+
+  it("treats key=all on a filter without a default as no filter", () => {
+    const params = listParamsFromSearch(new URLSearchParams("role=all"), defaults);
+    expect(params.role).toBeUndefined();
+    expect(listParamsToSearch(params, defaults)).toBe("");
+  });
 });

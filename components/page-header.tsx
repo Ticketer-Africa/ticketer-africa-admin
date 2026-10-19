@@ -31,7 +31,7 @@ export function PageHeader({
       <div className="min-w-0">
         <h1
           data-page-title=""
-          className="text-2xl font-semibold tracking-[-0.01em] text-foreground"
+          className="text-2xl font-semibold tracking-[-0.01em] text-foreground focus:outline-none"
         >
           {title}
         </h1>

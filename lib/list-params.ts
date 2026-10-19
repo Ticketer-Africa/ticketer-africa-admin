@@ -10,6 +10,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
  * value is a string ("true"/"false" for booleans, YYYY-MM-DD for dates).
  *
  * Only values that differ from the defaults are written, in a fixed order.
+ * A filter whose default is a value (Approvals' status=PENDING) is set to
+ * "any" by writing `key=all`; "all" is never sent to the API.
  */
 
 export type SortOrder = "asc" | "desc";
@@ -33,6 +35,8 @@ export type ListParams<F extends FilterValues> = F & {
 export const DEFAULT_PAGE_SIZE = 25;
 export const MAX_PAGE_SIZE = 100;
 const RESERVED = ["sort", "order", "page", "pageSize"] as const;
+/** URL marker for "no filter" on a filter whose default is a value. */
+export const ANY_VALUE = "all";
 
 /** Types the defaults so every filter key accepts a string. */
 export function defineListDefaults<K extends string>(defaults: {
@@ -60,7 +64,8 @@ export function listParamsFromSearch<F extends FilterValues>(
 ): ListParams<F> {
   const filters = {} as FilterValues;
   for (const key of Object.keys(defaults.filters)) {
-    filters[key] = clean(search.get(key)) ?? defaults.filters[key];
+    const raw = clean(search.get(key));
+    filters[key] = raw === ANY_VALUE ? undefined : (raw ?? defaults.filters[key]);
   }
   const order = search.get("order");
   return {
@@ -82,7 +87,10 @@ export function listParamsToSearch<F extends FilterValues>(
   const search = new URLSearchParams();
   for (const key of Object.keys(defaults.filters)) {
     const value = clean(params[key]);
-    if (value !== undefined && value !== defaults.filters[key]) {
+    const fallback = defaults.filters[key];
+    if (value === undefined) {
+      if (fallback !== undefined) search.set(key, ANY_VALUE);
+    } else if (value !== fallback) {
       search.set(key, value);
     }
   }

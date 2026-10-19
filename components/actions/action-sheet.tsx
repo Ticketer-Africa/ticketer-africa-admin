@@ -23,8 +23,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { entityHref } from "@/components/entity-link";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
-import { requestsKey } from "@/services/v2/requests";
-import { useAdminAction } from "./use-admin-action";
+import { requestsKey, type RequestOutcome } from "@/services/v2/requests";
+import { focusPageHeading } from "@/lib/focus-return";
+import { useAdminAction, useKeepFocusWhenHidden } from "./use-admin-action";
 
 /*
  * Tier 2 (confirm + reason) and tier 3 (request approval) actions, plus
@@ -71,15 +72,20 @@ interface ActionSheetProps {
   /** Crimson confirm button for actions that take something away. */
   destructive?: boolean;
   /**
-   * Does the work. Tier 3 must resolve to the created request (`{ id }`,
-   * e.g. from `createAdminRequest`) so the toast can link to it.
+   * Does the work. Tier 3: pass
+   * `(reason, extra) => createAndMaybeSelfApprove({ type, targetId, payload, reason }, extra)`
+   * so self-approval works and the toast can link to the request (a bare
+   * `{ id }` from `createAdminRequest` also works without self-approval).
    */
   onSubmit: (reason: string, extra: ActionSheetExtra) => Promise<unknown>;
   /** Queries to refetch after success or failure. */
   invalidate?: QueryKey[];
   /** Toast on success. */
   successMessage?: string;
-  /** Offer self-approval (a SUPERADMIN approving their own request). */
+  /**
+   * Tier 3 only: offer "Approve my own request". Pass `me.canApprove`
+   * (SUPERADMIN). Needs a 20+ character reason; runs the action at once.
+   */
   selfApprove?: boolean;
   /** Extra fields shown above the reason (role picker, refund mode, …). */
   children?: ReactNode;
@@ -128,6 +134,8 @@ export function ActionSheet({
   const [triedSubmit, setTriedSubmit] = useState(false);
   const reasonRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  useKeepFocusWhenHidden(available, triggerRef);
   const ids = { reason: useId(), count: useId(), error: useId(), self: useId() };
 
   const keys = tier === 3 ? [...invalidate, requestsKey] : invalidate;
@@ -157,7 +165,8 @@ export function ActionSheet({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (action.isPending) return;
+    // In flight, or done and the sheet is on its way out: never send twice.
+    if (action.isPending || action.isDone) return;
     setTriedSubmit(true);
     if (reasonShort) {
       reasonRef.current?.focus();
@@ -170,18 +179,41 @@ export function ActionSheet({
     );
     if (!result?.ok) return;
 
-    if (tier === 3) {
-      const id = (result.data as { id?: string } | undefined)?.id;
-      toast.success(successMessage ?? "Approval requested", {
-        description: "It's in Approvals until another superadmin decides.",
-        action: id
-          ? { label: "View request", onClick: () => router.push(entityHref("request", id)) }
-          : undefined,
+    if (tier === 3) announceRequest(result.data);
+    else toast.success(successMessage ?? "Done");
+    setOpen(false);
+  }
+
+  function announceRequest(data: unknown) {
+    const outcome: RequestOutcome =
+      data && typeof data === "object" && "request" in data
+        ? (data as RequestOutcome)
+        : { request: data as RequestOutcome["request"], selfApproved: false };
+    const id = outcome.request?.id;
+    const view = id
+      ? { label: "View request", onClick: () => router.push(entityHref("request", id)) }
+      : undefined;
+    if (outcome.selfApproveError) {
+      toast.warning("Request created, but your approval didn't go through", {
+        description: `${outcome.selfApproveError} It's waiting in Approvals.`,
+        action: view,
+      });
+    } else if (outcome.selfApproved && outcome.request.status === "FAILED") {
+      toast.error("Approved by you, but it failed to run", {
+        description: outcome.request.failureReason ?? "Open the request to retry it.",
+        action: view,
+      });
+    } else if (outcome.selfApproved) {
+      toast.success("Approved by you", {
+        description: "It has run. The other founder has been emailed.",
+        action: view,
       });
     } else {
-      toast.success(successMessage ?? "Done");
+      toast.success(successMessage ?? "Approval requested", {
+        description: "It's in Approvals until another superadmin decides.",
+        action: view,
+      });
     }
-    setOpen(false);
   }
 
   const counterText = reasonShort
@@ -190,11 +222,22 @@ export function ActionSheet({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      {trigger && available && <SheetTrigger asChild>{trigger}</SheetTrigger>}
+      {trigger && available && (
+        <SheetTrigger asChild ref={triggerRef}>
+          {trigger}
+        </SheetTrigger>
+      )}
       <SheetContent
         side={wide ? "right" : "bottom"}
         className={cn(wide && "sm:max-w-[28rem]")}
-        onCloseAutoFocus={resetForm}
+        onCloseAutoFocus={(event) => {
+          resetForm();
+          // The trigger went away (the action no longer applies): don't
+          // drop focus on <body>.
+          if (trigger && !triggerRef.current?.isConnected && focusPageHeading()) {
+            event.preventDefault();
+          }
+        }}
         onOpenAutoFocus={(event) => {
           // Land in the reason box; otherwise the first field.
           if (needsReason && reasonRef.current) {
@@ -253,7 +296,7 @@ export function ActionSheet({
               </div>
             )}
 
-            {selfApprove && (
+            {selfApprove && tier === 3 && (
               <div className="flex items-start gap-2.5 rounded-md border border-border p-3">
                 <Checkbox
                   id={ids.self}
@@ -264,8 +307,9 @@ export function ActionSheet({
                 <div className="space-y-0.5">
                   <Label htmlFor={ids.self}>Approve my own request</Label>
                   <p className="text-xs text-muted-foreground">
-                    Needs a reason of at least {SELF_APPROVE_REASON_MIN} characters. Every other
-                    superadmin gets an email saying you did this.
+                    It runs as soon as you submit, without waiting for anyone. Needs a reason of
+                    at least {SELF_APPROVE_REASON_MIN} characters, and the other founder gets an
+                    email saying you did this.
                   </p>
                 </div>
               </div>
@@ -291,7 +335,9 @@ export function ActionSheet({
 
           <SheetFooter className="flex-col sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
-              {tier === 3
+              {tier === 3 && selfApproving
+                ? "Runs now. The other founder is emailed."
+                : tier === 3
                 ? "Nothing happens until another superadmin approves."
                 : tier === 2
                   ? "Recorded in the audit log with your reason."
@@ -305,10 +351,12 @@ export function ActionSheet({
                 type="submit"
                 variant={destructive ? "destructive" : "primary"}
                 loading={action.isPending}
-                disabled={!canSubmit || !available}
+                disabled={!canSubmit || !available || action.isDone}
                 aria-describedby={action.error ? ids.error : undefined}
               >
-                {confirmLabel ?? (tier === 3 ? "Request approval" : title)}
+                {tier === 3 && selfApproving
+                  ? "Approve and run"
+                  : (confirmLabel ?? (tier === 3 ? "Request approval" : title))}
               </Button>
             </div>
           </SheetFooter>

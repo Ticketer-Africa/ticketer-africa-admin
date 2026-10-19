@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { adminGet, adminPost } from "./client";
+import { adminGet, adminPost, toApiError } from "./client";
 import type {
   AdminRequest,
   AdminTargetType,
@@ -16,6 +16,47 @@ export const pendingCountKey = [...requestsKey, "pending-count"] as const;
 /** POST /requests: ask a SUPERADMIN to approve a tier 3 action. */
 export function createAdminRequest(input: CreateRequestInput) {
   return adminPost<PendingRequestRef>("/requests", input);
+}
+
+/** What a tier 3 submit produced. */
+export interface RequestOutcome {
+  /** The created request; after a self-approval, its state after running. */
+  request: Pick<PendingRequestRef, "id" | "status"> & Partial<AdminRequest>;
+  /** True when the requester approved it themselves and it was run. */
+  selfApproved: boolean;
+  /** The request exists but approving it yourself failed (it stays PENDING). */
+  selfApproveError?: string;
+}
+
+/**
+ * Tier 3 submit. Creates the request; when `selfApprove` is set (a
+ * SUPERADMIN ticked "Approve my own request", reason ≥ 20 characters) it
+ * then approves it with POST /requests/:id/approve { selfApprove, reason },
+ * which runs it at once and emails the other superadmins.
+ *
+ * If the approval fails after the request was created, it resolves (not
+ * rejects) with `selfApproveError`: the request exists and is waiting, and
+ * submitting again would create a second one.
+ */
+export async function createAndMaybeSelfApprove(
+  input: CreateRequestInput,
+  { selfApprove }: { selfApprove: boolean },
+): Promise<RequestOutcome> {
+  const created = await createAdminRequest(input);
+  if (!selfApprove) return { request: created, selfApproved: false };
+  try {
+    const approved = await adminPost<AdminRequest>(`/requests/${created.id}/approve`, {
+      selfApprove: true,
+      reason: input.reason,
+    });
+    return { request: approved, selfApproved: true };
+  } catch (error) {
+    return {
+      request: created,
+      selfApproved: false,
+      selfApproveError: (await toApiError(error)).message,
+    };
+  }
 }
 
 export function useCreateRequest() {

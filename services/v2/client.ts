@@ -34,13 +34,17 @@ export class ApiError extends Error {
 
 type Body = { message?: unknown; code?: unknown } | undefined;
 
+const PERMISSION_MESSAGE = "You don't have permission to do that.";
+
 function messageFrom(body: Body, status: number): string {
   const raw = body?.message;
+  // Nest's guard default, not written for people.
+  if (raw === "Forbidden resource") return PERMISSION_MESSAGE;
   // Validation errors arrive as a list of sentences.
   if (Array.isArray(raw) && raw.length) return raw.map(String).join(". ");
   if (typeof raw === "string" && raw.trim()) return raw;
   if (status >= 500) return "Something went wrong on our side. Try again in a moment.";
-  if (status === 403) return "You don't have permission to do that.";
+  if (status === 403) return PERMISSION_MESSAGE;
   if (status === 404) return "Not found.";
   return `Request failed (${status}).`;
 }

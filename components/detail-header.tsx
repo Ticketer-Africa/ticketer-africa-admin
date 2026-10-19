@@ -53,7 +53,7 @@ export function DetailHeader({
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h1
               data-page-title=""
-              className="min-w-0 break-words text-2xl font-semibold tracking-[-0.01em] text-foreground"
+              className="min-w-0 break-words text-2xl font-semibold tracking-[-0.01em] text-foreground focus:outline-none"
             >
               {title}
             </h1>

@@ -31,3 +31,17 @@ export function createFocusReturn(): FocusReturn {
     },
   };
 }
+
+/**
+ * Fallback focus target when the element that should get focus back no
+ * longer exists (an action whose trigger vanished after a refetch): the
+ * page's own heading (PageHeader / DetailHeader mark it `data-page-title`).
+ * Returns false when there's no heading.
+ */
+export function focusPageHeading(): boolean {
+  const heading = document.querySelector<HTMLElement>("[data-page-title]");
+  if (!heading) return false;
+  if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+  heading.focus({ preventScroll: true });
+  return true;
+}
