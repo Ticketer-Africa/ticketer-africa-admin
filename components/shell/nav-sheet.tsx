@@ -29,17 +29,18 @@ import { cn } from "@/lib/utils";
 /** Phone navigation: every page, plus account and theme. */
 export function NavSheet() {
   const pathname = usePathname();
-  const { openMobile, setOpenMobile } = useSidebar();
+  const { openMobile, setOpenMobile, onMobileCloseAutoFocus } = useSidebar();
   const badges = useNavBadges();
   const { user, logout } = useUser();
   const { theme, setTheme } = useTheme();
 
   return (
-    <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+    <Sheet open={openMobile} onOpenChange={(value) => setOpenMobile(value)}>
       <SheetContent
         side="left"
         hideClose
         aria-describedby={undefined}
+        onCloseAutoFocus={onMobileCloseAutoFocus}
         className="bg-sidebar p-0"
       >
         <SheetTitle className="sr-only">Navigation</SheetTitle>

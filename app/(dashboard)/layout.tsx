@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { AppShell } from "@/components/shell/app-shell";
-import { SIDEBAR_COOKIE_NAME } from "@/components/ui/sidebar";
+import { SIDEBAR_COOKIE_NAME } from "@/components/shell/sidebar-cookie";
 
 export default async function DashboardLayout({
   children,

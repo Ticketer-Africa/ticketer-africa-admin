@@ -4,6 +4,8 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { SIDEBAR_COOKIE_NAME } from "@/components/shell/sidebar-cookie"
+import { createFocusReturn } from "@/lib/focus-return"
 import { cn } from "@/lib/utils"
 import {
   Tooltip,
@@ -11,7 +13,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-export const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 const SIDEBAR_WIDTH = "15rem"
 const SIDEBAR_WIDTH_ICON = "3.25rem"
@@ -27,7 +28,9 @@ type SidebarContextValue = {
   open: boolean
   setOpen: (open: boolean) => void
   openMobile: boolean
-  setOpenMobile: (open: boolean) => void
+  /** `opener` is where focus returns when the nav sheet closes. */
+  setOpenMobile: (open: boolean, opener?: Element | null) => void
+  onMobileCloseAutoFocus: (event: Event) => void
   isMobile: boolean
   toggleSidebar: () => void
 }
@@ -51,7 +54,15 @@ function SidebarProvider({
 }: React.ComponentProps<"div"> & { defaultOpen?: boolean }) {
   const isMobile = useMediaQuery("(max-width: 767px)")
   const isTablet = useMediaQuery("(min-width: 768px) and (max-width: 1023px)")
-  const [openMobile, setOpenMobile] = React.useState(false)
+  const [openMobile, setOpenMobileState] = React.useState(false)
+  const [mobileFocusReturn] = React.useState(createFocusReturn)
+  const setOpenMobile = React.useCallback(
+    (value: boolean, opener?: Element | null) => {
+      if (value) mobileFocusReturn.capture(opener)
+      setOpenMobileState(value)
+    },
+    [mobileFocusReturn]
+  )
   const [desktopOpen, setDesktopOpen] = React.useState(defaultOpen)
   const [tabletOpen, setTabletOpen] = React.useState(false)
   // Width only animates after the person toggles it, so the tablet collapse
@@ -74,13 +85,13 @@ function SidebarProvider({
   )
 
   const toggleSidebar = React.useCallback(() => {
-    if (isMobile) setOpenMobile((value) => !value)
+    if (isMobile) setOpenMobile(!openMobile)
     else setOpen(!open)
-  }, [isMobile, open, setOpen])
+  }, [isMobile, open, openMobile, setOpen, setOpenMobile])
 
   // Leaving phone width closes the nav sheet so it can't linger behind the sidebar.
   React.useEffect(() => {
-    if (!isMobile) setOpenMobile(false)
+    if (!isMobile) setOpenMobileState(false)
   }, [isMobile])
 
   React.useEffect(() => {
@@ -102,8 +113,17 @@ function SidebarProvider({
   const state = open ? "expanded" : "collapsed"
 
   const contextValue = React.useMemo<SidebarContextValue>(
-    () => ({ state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar }),
-    [state, open, setOpen, isMobile, openMobile, toggleSidebar]
+    () => ({
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      onMobileCloseAutoFocus: mobileFocusReturn.restore,
+      toggleSidebar,
+    }),
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, mobileFocusReturn, toggleSidebar]
   )
 
   return (

@@ -25,11 +25,14 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { NAV } from "@/components/shell/nav-config";
 import { cn } from "@/lib/utils";
+import { createFocusReturn } from "@/lib/focus-return";
 
 interface CommandPaletteContextValue {
   open: boolean;
-  setOpen: (open: boolean) => void;
+  /** `opener` is where focus returns on close (defaults to the focused element). */
+  setOpen: (open: boolean, opener?: Element | null) => void;
   toggle: () => void;
+  onCloseAutoFocus: (event: Event) => void;
 }
 
 const CommandPaletteContext = createContext<CommandPaletteContextValue | null>(
@@ -48,8 +51,17 @@ export function useCommandPalette() {
 
 /** Holds the palette's open state and binds ⌘K / Ctrl K. */
 export function CommandPaletteProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const toggle = useCallback(() => setOpen((value) => !value), []);
+  const [open, setOpenState] = useState(false);
+  const [focusReturn] = useState(createFocusReturn);
+
+  const setOpen = useCallback(
+    (next: boolean, opener?: Element | null) => {
+      if (next) focusReturn.capture(opener);
+      setOpenState(next);
+    },
+    [focusReturn],
+  );
+  const toggle = useCallback(() => setOpen(!open), [open, setOpen]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -67,7 +79,10 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [toggle]);
 
-  const value = useMemo(() => ({ open, setOpen, toggle }), [open, toggle]);
+  const value = useMemo(
+    () => ({ open, setOpen, toggle, onCloseAutoFocus: focusReturn.restore }),
+    [open, setOpen, toggle, focusReturn],
+  );
 
   return (
     <CommandPaletteContext.Provider value={value}>
@@ -87,7 +102,7 @@ const THEMES = [
  * search (users, events, references, ticket codes) is wired in Task 8.
  */
 export function CommandPalette() {
-  const { open, setOpen } = useCommandPalette();
+  const { open, setOpen, onCloseAutoFocus } = useCommandPalette();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
 
@@ -107,6 +122,7 @@ export function CommandPalette() {
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
+          onCloseAutoFocus={onCloseAutoFocus}
           className={cn(
             "fixed inset-x-3 top-3 z-sheet mx-auto max-w-[36rem] overflow-hidden rounded-xl border border-border bg-popover shadow-overlay outline-none md:inset-x-4 md:top-[14vh]",
             "duration-150 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=open]:slide-in-from-top-1",

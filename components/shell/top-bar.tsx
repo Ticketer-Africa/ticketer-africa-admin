@@ -43,7 +43,7 @@ export function TopBar() {
         size="icon"
         className="md:hidden"
         aria-label="Open navigation"
-        onClick={() => setOpenMobile(true)}
+        onClick={(event) => setOpenMobile(true, event.currentTarget)}
       >
         <HugeiconsIcon icon={Menu01Icon} />
       </Button>
@@ -95,7 +95,7 @@ export function TopBar() {
 
       <button
         type="button"
-        onClick={() => palette.setOpen(true)}
+        onClick={(event) => palette.setOpen(true, event.currentTarget)}
         aria-keyshortcuts="Meta+K Control+K"
         className="hidden h-8 w-56 items-center gap-2 rounded-md border border-input bg-surface pl-2.5 pr-1.5 text-sm text-muted-foreground transition-colors duration-state ease-out hover:bg-accent/60 hover:text-foreground md:flex lg:w-72"
       >
@@ -109,7 +109,7 @@ export function TopBar() {
         size="icon"
         className="md:hidden"
         aria-label="Search"
-        onClick={() => palette.setOpen(true)}
+        onClick={(event) => palette.setOpen(true, event.currentTarget)}
       >
         <HugeiconsIcon icon={Search01Icon} />
       </Button>

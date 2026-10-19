@@ -12,7 +12,7 @@ const Switch = React.forwardRef<
   <SwitchPrimitives.Root
     className={cn(
       "peer relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-transparent transition-colors duration-state ease-out",
-      "data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
+      "data-[state=checked]:bg-primary data-[state=unchecked]:bg-control",
       "disabled:cursor-not-allowed disabled:opacity-50",
       // 40px hit area on touch without changing the visual size.
       "after:absolute after:-inset-x-1 after:-inset-y-2.5 md:after:hidden",

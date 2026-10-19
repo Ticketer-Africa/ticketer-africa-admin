@@ -76,7 +76,7 @@ export function MobileTabBar() {
         <li>
           <button
             type="button"
-            onClick={() => palette.setOpen(true)}
+            onClick={(event) => palette.setOpen(true, event.currentTarget)}
             aria-haspopup="dialog"
             className={itemClasses}
           >
@@ -116,7 +116,7 @@ export function MobileTabBar() {
         <li>
           <button
             type="button"
-            onClick={() => setOpenMobile(true)}
+            onClick={(event) => setOpenMobile(true, event.currentTarget)}
             aria-haspopup="dialog"
             aria-expanded={openMobile}
             className={itemClasses}

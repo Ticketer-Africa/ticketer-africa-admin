@@ -2,6 +2,7 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
+import { isAxiosError } from "axios";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AlertCircleIcon,
@@ -16,9 +17,18 @@ import { useAdminLogin } from "@/services/auth/auth.queries";
 import { safeNextPath } from "@/lib/next-param";
 import { apiEnvironment } from "@/lib/env";
 
-function FormAlert({ children }: { children: React.ReactNode }) {
+const ERROR_ID = "login-error";
+
+/** 400/401 mean wrong credentials; anything else (network, 5xx) is on our side. */
+function isCredentialError(error: unknown): boolean {
+  const status = isAxiosError(error) ? error.response?.status : undefined;
+  return status === 400 || status === 401;
+}
+
+function FormAlert({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
     <div
+      id={id}
       role="alert"
       className="flex items-start gap-2 rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
     >
@@ -37,6 +47,14 @@ function LoginForm() {
   const next = safeNextPath(searchParams.get("next"));
   const loginMutation = useAdminLogin();
   const env = apiEnvironment();
+  const credentialsRejected =
+    loginMutation.isError && isCredentialError(loginMutation.error);
+  const errorMessage = !loginMutation.isError
+    ? null
+    : credentialsRejected
+      ? "That email and password don't match an admin account."
+      : "Couldn't reach Ticketer Africa. Try again.";
+  const describedBy = errorMessage ? ERROR_ID : undefined;
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -91,7 +109,8 @@ function LoginForm() {
                 placeholder="you@ticketer.africa"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                aria-invalid={loginMutation.isError || undefined}
+                aria-invalid={credentialsRejected || undefined}
+                aria-describedby={describedBy}
               />
             </div>
 
@@ -106,14 +125,15 @@ function LoginForm() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  aria-invalid={loginMutation.isError || undefined}
+                  aria-invalid={credentialsRejected || undefined}
+                  aria-describedby={describedBy}
                   className="pr-11 md:pr-9"
                 />
                 <Button
                   type="button"
                   variant="muted"
                   size="icon-sm"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label="Show password"
                   aria-pressed={showPassword}
                   onClick={() => setShowPassword((value) => !value)}
                   className="absolute right-1 top-1/2 -translate-y-1/2 active:-translate-y-1/2 active:scale-100"
@@ -123,11 +143,7 @@ function LoginForm() {
               </div>
             </div>
 
-            {loginMutation.isError && (
-              <FormAlert>
-                That email and password don&apos;t match an admin account.
-              </FormAlert>
-            )}
+            {errorMessage && <FormAlert id={ERROR_ID}>{errorMessage}</FormAlert>}
 
             <Button
               type="submit"

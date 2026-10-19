@@ -35,7 +35,8 @@ starting values to pass contrast.
 | `--muted` | 0.955 0.005 255 | 0.235 0.014 260 | skeletons, subtle fills |
 | `--accent` | 0.95 0.006 255 | 0.25 0.014 260 | hover / highlighted rows |
 | `--border` | 0.91 0.006 255 | 0.28 0.014 260 | hairlines |
-| `--input` | 0.87 0.008 255 | 0.32 0.014 260 | control borders |
+| `--input` | 0.87 0.008 255 | 0.32 0.014 260 | button outlines, search trigger (labelled, decorative) |
+| `--control-border` (new) | 0.6 0.018 255 | 0.54 0.018 258 | boundaries of inputs, textareas, selects, checkboxes, the off switch track (`border-control`, `bg-control`) |
 | `--primary` (terracotta) | 0.57 0.155 37 | 0.7 0.14 37 | fills, focus ring, active icon |
 | `--primary-foreground` | 0.99 0 0 | 0.22 0.07 35 | text on terracotta |
 | `--primary-text` (new) | 0.525 0.15 37 | 0.74 0.13 37 | terracotta text on a tint |
@@ -70,8 +71,24 @@ fails.
 | badge text on its 10% tint (worst of the five) | 4.6 | 4.5+ |
 | destructive / surface | 5.9 | 5.3 |
 
-Hairline borders are intentionally low contrast (decoration, not the only
-cue). The focus ring is terracotta at 4.6:1 (light) and 6.8:1 (dark).
+Hairline borders (`--border`, `--input`) are intentionally low contrast:
+they're decoration, not the only cue. Anything whose boundary *is* the cue
+(text fields, selects, checkboxes, the off switch track) uses
+`--control-border` instead, measured for WCAG 1.4.11 (non-text ≥ 3:1):
+
+| `--control-border` against | Light | Dark |
+|---|---|---|
+| background | 3.78 | 3.81 |
+| surface | 3.94 | 3.57 |
+| sidebar | 3.57 | 3.91 |
+| popover (sheets) | 3.94 | 3.44 |
+| muted | 3.45 | 3.29 |
+| white switch thumb on the off track | 3.94 | 5.07 |
+
+(The old `--input` border measured 1.48 / 1.43 against surface.) The focus
+ring is terracotta at 4.6:1 (light) and 6.8:1 (dark). Invalid controls
+(`aria-invalid="true"`) switch to a crimson border, plus a crimson ring on
+focus.
 
 ## Typography
 
@@ -119,7 +136,7 @@ jumps.
 
 Button (`primary`, `secondary`/`outline`, `ghost`, `muted`, `destructive`,
 `destructive-outline`, `link`; sizes `sm`, `default`, `lg`, `icon`,
-`icon-sm`; `loading` prop), Input, Label, Badge (`neutral`, `outline`,
+`icon-sm`; `loading` prop), Input, Textarea, Label, Badge (`neutral`, `outline`,
 `primary`, `success`, `warning`, `destructive`, `info`, optional `dot`),
 Table (36px header, 40px rows), Panel (+ Header/Title/Description/Content/
 Footer), Sheet (left/right/bottom, + Header/Body/Footer), Switch, Checkbox,
@@ -148,6 +165,11 @@ Buttons and controls are 40px tall on phones and 32px (28px small) from
   a theme segmented control and Sign out.
 - **Command palette:** ⌘K / Ctrl K anywhere; jumps to any page and switches
   theme. Record search arrives with the v2 search endpoint.
+- **Focus return:** the palette and the nav sheet open from state, not from a
+  Radix Trigger, so `lib/focus-return.ts` records the opener and refocuses it
+  on close. Pass the clicked element as the second argument
+  (`setOpen(true, event.currentTarget)`, `setOpenMobile(true, el)`) because
+  Safari doesn't focus clicked buttons.
 - **PageHeader:** 22px semibold title, one-line muted description, actions on
   the right (below on phones).
 - A small amber tag next to the wordmark (and on the login page) says

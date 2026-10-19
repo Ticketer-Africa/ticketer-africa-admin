@@ -29,6 +29,8 @@
 
     --border: 0.91 0.006 255;
     --input: 0.87 0.008 255;
+    /* Boundaries of form controls (WCAG 1.4.11): ≥3:1 on every surface. */
+    --control-border: 0.6 0.018 255;
     --ring: 0.57 0.155 37;
 
     --primary: 0.57 0.155 37;
@@ -92,6 +94,7 @@
 
     --border: 0.28 0.014 260;
     --input: 0.32 0.014 260;
+    --control-border: 0.54 0.018 258;
     --ring: 0.7 0.14 37;
 
     --primary: 0.7 0.14 37;

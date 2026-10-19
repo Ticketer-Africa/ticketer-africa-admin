@@ -77,6 +77,7 @@ const config: Config = {
         },
         border: token("border"),
         input: token("input"),
+        control: token("control-border"),
         ring: token("ring"),
         chart: {
           "1": token("chart-1"),
