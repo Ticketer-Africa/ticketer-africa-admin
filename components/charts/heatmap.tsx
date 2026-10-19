@@ -9,12 +9,16 @@ import type { HeatmapCell } from "@/services/v2/analytics";
  * Tickets sold by Lagos weekday (rows, Monday first) and hour (columns).
  * One hue, light to dark: five steps of the key series colour over the
  * surface, so dark mode gets its own steps (dim to bright) from the same
- * token. Zero is the muted fill, not the lightest step. On phones the grid
+ * token. Zero is a hollow outlined cell, not the lightest step. On phones the grid
  * keeps its cell size and scrolls inside its own frame.
  */
 
 export const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const STEPS = [0.16, 0.34, 0.54, 0.76, 1];
+// Alpha of --chart-1 over the surface. Measured (sRGB compositing): the first
+// step is 1.5:1 against the surface in both themes and each step is ≥ 1.3:1
+// against the next, so neighbours stay apart. Zero is a hollow cell instead.
+const STEPS = [0.3, 0.48, 0.64, 0.82, 1];
+const HOLLOW = "shadow-[inset_0_0_0_1px_oklch(var(--input))]";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 export const hourRange = (hour: number) => `${pad(hour)}:00–${pad((hour + 1) % 24)}:00`;
@@ -25,7 +29,7 @@ function step(value: number, max: number): number {
 }
 
 function fill(level: number): string {
-  return level < 0 ? "oklch(var(--muted))" : `oklch(var(--chart-1) / ${STEPS[level]})`;
+  return level < 0 ? "transparent" : `oklch(var(--chart-1) / ${STEPS[level]})`;
 }
 
 const describe = (cell: HeatmapCell) =>
@@ -69,6 +73,7 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
               </span>
               {row.map((cell, hour) => {
                 const value = cell?.ticketsSold ?? 0;
+                const level = step(value, max);
                 const active = hovered?.weekday === weekday && hovered?.hour === hour;
                 return (
                   <span
@@ -77,9 +82,10 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
                     onPointerEnter={() => cell && setHovered(cell)}
                     className={cn(
                       "h-[1.375rem] rounded-[3px] transition-shadow duration-state",
+                      level < 0 && HOLLOW,
                       active && "shadow-[0_0_0_2px_oklch(var(--foreground))]",
                     )}
-                    style={{ backgroundColor: fill(step(value, max)) }}
+                    style={{ backgroundColor: fill(level) }}
                   />
                 );
               })}
@@ -95,7 +101,7 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="size-2.5 rounded-[2px]" style={{ backgroundColor: fill(-1) }} />
+          <span aria-hidden="true" className={cn("size-2.5 rounded-[2px]", HOLLOW)} />
           None
         </span>
         <span className="flex items-center gap-1.5">

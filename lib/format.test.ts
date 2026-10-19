@@ -6,6 +6,7 @@ import {
   formatDate,
   formatDateTime,
   formatDelta,
+  formatDeltaPoints,
   formatNaira,
   formatPercent,
   formatRelative,
@@ -125,5 +126,18 @@ describe("formatCompact / formatCompactNaira (chart axes)", () => {
     expect(formatCompactNaira(25_000)).toBe("₦25K");
     expect(formatCompactNaira(-1_500)).toBe("-₦1.5K");
     expect(formatCompactNaira(null)).toBe("—");
+  });
+});
+
+describe("formatDeltaPoints (rates)", () => {
+  it("shows the change of a ratio in percentage points", () => {
+    expect(formatDeltaPoints(0.94, 0.937)).toEqual({ label: "+0.3 pp", direction: "up" });
+    expect(formatDeltaPoints(0.9, 0.95)).toEqual({ label: "−5.0 pp", direction: "down" });
+    expect(formatDeltaPoints(0.95, 0.9502)).toEqual({ label: "0.0 pp", direction: "flat" });
+  });
+
+  it("shows — when either side is missing", () => {
+    expect(formatDeltaPoints(null, 0.9)).toEqual({ label: "—", direction: "flat" });
+    expect(formatDeltaPoints(0.9, undefined)).toEqual({ label: "—", direction: "flat" });
   });
 });

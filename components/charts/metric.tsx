@@ -1,7 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDownRight01Icon, ArrowUpRight01Icon, MinusSignIcon } from "@hugeicons/core-free-icons";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDelta } from "@/lib/format";
+import { formatDelta, formatDeltaPoints } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /*
@@ -23,6 +23,8 @@ interface MetricProps {
   /** What the previous value was, shown on hover of the change. */
   previousDisplay?: string;
   size?: "lg" | "md" | "sm";
+  /** "points" for rates: "+0.3 pp" instead of a relative "+0.3%". */
+  deltaKind?: "percent" | "points";
   loading?: boolean;
   className?: string;
 }
@@ -36,11 +38,14 @@ export function Metric({
   downIsGood = false,
   previousDisplay,
   size = "md",
+  deltaKind = "percent",
   loading = false,
   className,
 }: MetricProps) {
   const hasDelta = current !== undefined && previous !== undefined;
-  const delta = hasDelta ? formatDelta(current, previous) : null;
+  const delta = hasDelta
+    ? (deltaKind === "points" ? formatDeltaPoints : formatDelta)(current, previous)
+    : null;
   const good = delta && delta.direction !== "flat" && (delta.direction === "up") !== downIsGood;
   const bad = delta && delta.direction !== "flat" && !good;
   const icon =
@@ -49,8 +54,8 @@ export function Metric({
     delta?.label === "new"
       ? "New this period"
       : delta && delta.direction !== "flat"
-      ? `${delta.direction === "up" ? "Up" : "Down"} ${delta.label.replace(/^[+−]/, "")}`
-      : delta?.label === "0.0%"
+      ? `${delta.direction === "up" ? "Up" : "Down"} ${delta.label.replace(/^[+−]/, "").replace(" pp", " percentage points")}`
+      : delta?.direction === "flat" && delta.label !== "—"
         ? "No change"
         : delta?.label;
 

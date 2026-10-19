@@ -11,9 +11,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { ActivityFeed } from "@/components/activity-feed";
 import { BarList } from "@/components/charts/bar-list";
-import { ChartPanel, ChartTable } from "@/components/charts/chart-panel";
+import { ChartPanel, ChartTable, Legend } from "@/components/charts/chart-panel";
 import { Metric } from "@/components/charts/metric";
-import { bucketLabel, TimeseriesChart } from "@/components/charts/timeseries-chart";
+import { partialNote, periodLabel, TimeseriesChart } from "@/components/charts/timeseries-chart";
 import { ANALYTICS_PRESETS, DateRangePicker, useAnalyticsRange } from "@/components/date-range-picker";
 import { EntityLink } from "@/components/entity-link";
 import { ErrorState } from "@/components/error-state";
@@ -24,7 +24,7 @@ import { Panel, PanelContent, PanelDescription, PanelHeader, PanelTitle } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCount, formatDateTime, formatNaira, formatPercent, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { autoGranularity, rangeDays, useOverview, useTimeseries } from "@/services/v2/analytics";
+import { autoGranularity, partialBuckets, rangeDays, useOverview, useTimeseries } from "@/services/v2/analytics";
 import { useRecentActivity } from "@/services/v2/audit";
 import { useHealth, type HealthItem, type HealthSeverity } from "@/services/v2/health";
 import { useRecentTransactions } from "@/services/v2/transactions";
@@ -133,6 +133,7 @@ function Performance({
               current={current?.paymentSuccessRate}
               previous={previous?.paymentSuccessRate}
               previousDisplay={formatPercent(previous?.paymentSuccessRate)}
+              deltaKind="points"
               compareLabel={compareLabel}
               loading={loading}
             />
@@ -142,20 +143,28 @@ function Performance({
     </div>
   );
 
+  const partials = partialBuckets(
+    points.map((p) => p.bucket),
+    range,
+    granularity,
+  );
+  const note = partialNote(partials, granularity);
+
   return (
     <ChartPanel
       className={className}
       title="Sales"
-      description="Processed is what buyers paid; net revenue is what Ticketer Africa kept."
+      description={
+        <>
+          Processed is what buyers paid; net revenue is what Ticketer Africa kept.
+          {note && <> {note}</>}
+        </>
+      }
       summary={summary}
       query={timeseries}
       empty={points.length > 0 && points.every((p) => p.processed === 0 && p.netRevenue === 0)}
       emptyTitle="No sales in this range"
-      height={260}
-      legend={[
-        { label: "Processed", color: "chart-1", shape: "block" },
-        { label: "Net revenue", color: "chart-2", shape: "line" },
-      ]}
+      height={300}
       table={
         <ChartTable
           caption="Processed and net revenue by period"
@@ -166,22 +175,37 @@ function Performance({
           ]}
           rows={points.map((p) => ({
             key: p.bucket,
-            cells: [bucketLabel(p.bucket, granularity, true), formatNaira(p.processed), formatNaira(p.netRevenue)],
+            cells: [periodLabel(p.bucket, granularity, partials), formatNaira(p.processed), formatNaira(p.netRevenue)],
           }))}
         />
       }
     >
-      <TimeseriesChart
-        data={points}
-        granularity={granularity}
-        format="naira"
-        height={260}
-        fill
-        series={[
-          { key: "processed", label: "Processed", color: "chart-1", kind: "area" },
-          { key: "netRevenue", label: "Net revenue", color: "chart-2", kind: "line" },
-        ]}
-      />
+      {/* Two scales, two charts: net revenue is a few percent of processed. */}
+      <div className="flex flex-1 flex-col gap-2">
+        <Legend items={[{ label: "Processed", color: "chart-1", shape: "block" }]} />
+        <TimeseriesChart
+          data={points}
+          granularity={granularity}
+          format="naira"
+          partials={partials}
+          height={130}
+          fill
+          showXAxis={false}
+          syncId="overview-sales"
+          series={[{ key: "processed", label: "Processed", color: "chart-1", kind: "area" }]}
+        />
+        <Legend items={[{ label: "Net revenue", color: "chart-2", shape: "block" }]} className="mt-2" />
+        <TimeseriesChart
+          data={points}
+          granularity={granularity}
+          format="naira"
+          partials={partials}
+          height={160}
+          fill
+          syncId="overview-sales"
+          series={[{ key: "netRevenue", label: "Net revenue", color: "chart-2", kind: "area" }]}
+        />
+      </div>
     </ChartPanel>
   );
 }
@@ -223,6 +247,7 @@ function NeedsAttention({ className }: { className?: string }) {
           </PanelDescription>
         </div>
       </PanelHeader>
+      <StaleNote query={health} />
       {health.isPending ? (
         <ul aria-label="Loading checks" className="grid gap-3 p-4">
           {[0, 1, 2].map((i) => (
@@ -232,7 +257,7 @@ function NeedsAttention({ className }: { className?: string }) {
             </li>
           ))}
         </ul>
-      ) : health.isError ? (
+      ) : !health.data ? (
         <ErrorState
           title="Couldn't run the checks"
           error={health.error}
@@ -286,6 +311,28 @@ function NeedsAttention({ className }: { className?: string }) {
   );
 }
 
+/**
+ * A failed background refresh keeps the last good answer on screen, with a
+ * note saying how old it is and a way to try again.
+ */
+function StaleNote({ query }: { query: ReturnType<typeof useHealth> }) {
+  if (!query.isError || !query.data) return null;
+  return (
+    <p role="status" className="flex flex-wrap items-center gap-x-2 border-b border-border bg-muted px-4 py-2 text-xs text-muted-foreground">
+      <HugeiconsIcon icon={Alert02Icon} aria-hidden="true" className="size-3.5 text-warning" />
+      Couldn&rsquo;t refresh. Showing the check from {formatDateTime(query.dataUpdatedAt).split(", ")[1]}.
+      <button
+        type="button"
+        onClick={() => query.refetch()}
+        disabled={query.isFetching}
+        className="rounded-sm font-medium text-foreground underline decoration-muted-foreground/50 underline-offset-[3px] hover:decoration-foreground disabled:opacity-60"
+      >
+        {query.isFetching ? "Retrying…" : "Retry"}
+      </button>
+    </p>
+  );
+}
+
 /* ─── Korapay balance against what organizers are owed ─── */
 
 function MoneyCover({ className }: { className?: string }) {
@@ -304,13 +351,14 @@ function MoneyCover({ className }: { className?: string }) {
           <PanelDescription className="mt-0.5">Can we pay every organizer what they&rsquo;re owed today?</PanelDescription>
         </div>
       </PanelHeader>
+      <StaleNote query={health} />
       <PanelContent className="grid gap-4">
         {health.isPending ? (
           <div className="grid gap-2">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-2/3" />
           </div>
-        ) : health.isError ? (
+        ) : !data ? (
           <ErrorState
             title="Couldn't load balances"
             error={health.error}

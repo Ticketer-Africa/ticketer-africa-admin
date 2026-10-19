@@ -7,7 +7,7 @@ import { ChartPanel, ChartTable } from "@/components/charts/chart-panel";
 import { Donut } from "@/components/charts/donut";
 import { Heatmap, hourRange, WEEKDAYS } from "@/components/charts/heatmap";
 import { Metric } from "@/components/charts/metric";
-import { bucketLabel, TimeseriesChart } from "@/components/charts/timeseries-chart";
+import { partialNote, periodLabel, TimeseriesChart, type Partials } from "@/components/charts/timeseries-chart";
 import { ANALYTICS_PRESETS, DateRangePicker, useAnalyticsRange } from "@/components/date-range-picker";
 import { EntityLink } from "@/components/entity-link";
 import { ErrorState } from "@/components/error-state";
@@ -19,6 +19,7 @@ import { formatCount, formatNaira, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   autoGranularity,
+  partialBuckets,
   rangeDays,
   useCategories,
   useFees,
@@ -190,6 +191,7 @@ function Figures({
           previousDisplay={show(figure, previous?.[figure.key])}
           compareLabel={compareLabel}
           downIsGood={figure.downIsGood}
+          deltaKind={figure.percent ? "points" : "percent"}
           loading={overview.isPending}
         />
       ))}
@@ -234,6 +236,19 @@ interface SeriesProps extends RangeProps {
   granularity: Granularity;
 }
 
+function partialsFor(points: { bucket: string }[], range: DateRange, granularity: Granularity): Partials {
+  return partialBuckets(
+    points.map((p) => p.bucket),
+    range,
+    granularity,
+  );
+}
+
+function withNote(text: string, partials: Partials, granularity: Granularity): string {
+  const note = partialNote(partials, granularity);
+  return note ? `${text} ${note}` : text;
+}
+
 /* ─── Sales ─── */
 
 function SalesPanel({
@@ -245,11 +260,12 @@ function SalesPanel({
 }: SeriesProps & { compareLabel: string; overview: OverviewQuery }) {
   const query = useTimeseries(range, granularity);
   const points = query.data?.points ?? [];
+  const partials = partialsFor(points, range, granularity);
   return (
     <ChartPanel
       className={className}
       title="Sales"
-      description="Processed is everything buyers paid for tickets and resales, refunded or not."
+      description={withNote("Processed is everything buyers paid for tickets and resales, refunded or not.", partials, granularity)}
       summary={
         <Figures
           overview={overview}
@@ -274,7 +290,7 @@ function SalesPanel({
           columns={[{ label: PERIOD_NAME[granularity] }, { label: "Processed", numeric: true }]}
           rows={points.map((p) => ({
             key: p.bucket,
-            cells: [bucketLabel(p.bucket, granularity, true), formatNaira(p.processed)],
+            cells: [periodLabel(p.bucket, granularity, partials), formatNaira(p.processed)],
           }))}
         />
       }
@@ -283,6 +299,7 @@ function SalesPanel({
       <TimeseriesChart
         data={points}
         granularity={granularity}
+        partials={partials}
         format="naira"
         series={[{ key: "processed", label: "Processed", color: "chart-1", kind: "area" }]}
       />
@@ -293,11 +310,12 @@ function SalesPanel({
 function TicketsPanel({ range, granularity, className }: SeriesProps) {
   const query = useTimeseries(range, granularity);
   const points = query.data?.points ?? [];
+  const partials = partialsFor(points, range, granularity);
   return (
     <ChartPanel
       className={className}
       title="Tickets and orders"
-      description="One order can hold several tickets."
+      description={withNote("One order can hold several tickets.", partials, granularity)}
       query={query}
       empty={points.every((p) => p.ticketsSold === 0 && p.orders === 0)}
       emptyTitle="No tickets sold in this range"
@@ -316,7 +334,7 @@ function TicketsPanel({ range, granularity, className }: SeriesProps) {
           ]}
           rows={points.map((p) => ({
             key: p.bucket,
-            cells: [bucketLabel(p.bucket, granularity, true), formatCount(p.ticketsSold), formatCount(p.orders)],
+            cells: [periodLabel(p.bucket, granularity, partials), formatCount(p.ticketsSold), formatCount(p.orders)],
           }))}
         />
       }
@@ -324,6 +342,7 @@ function TicketsPanel({ range, granularity, className }: SeriesProps) {
       <TimeseriesChart
         data={points}
         granularity={granularity}
+        partials={partials}
         format="count"
         height={280}
         series={[
@@ -346,11 +365,12 @@ function RevenuePanel({
 }: SeriesProps & { compareLabel: string; overview: OverviewQuery }) {
   const query = useTimeseries(range, granularity);
   const points = query.data?.points ?? [];
+  const partials = partialsFor(points, range, granularity);
   return (
     <ChartPanel
       className={className}
       title="Revenue"
-      description="Net revenue is platform fees kept after refund reversals."
+      description={withNote("Net revenue is platform fees kept after refund reversals.", partials, granularity)}
       summary={
         <Figures
           overview={overview}
@@ -379,7 +399,7 @@ function RevenuePanel({
           ]}
           rows={points.map((p) => ({
             key: p.bucket,
-            cells: [bucketLabel(p.bucket, granularity, true), formatNaira(p.netRevenue), formatNaira(p.refunded)],
+            cells: [periodLabel(p.bucket, granularity, partials), formatNaira(p.netRevenue), formatNaira(p.refunded)],
           }))}
         />
       }
@@ -387,6 +407,7 @@ function RevenuePanel({
       <TimeseriesChart
         data={points}
         granularity={granularity}
+        partials={partials}
         format="naira"
         series={[
           { key: "netRevenue", label: "Net revenue", color: "chart-1", kind: "area" },

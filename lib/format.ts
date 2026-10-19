@@ -135,3 +135,22 @@ export function formatDelta(
     ? { label: `+${rounded}%`, direction: "up" }
     : { label: `−${rounded}%`, direction: "down" };
 }
+
+/**
+ * Change of a rate (0..1) in percentage points: 0.937 → 0.94 is "+0.3 pp".
+ * Anything that rounds to 0.0 is flat.
+ */
+export function formatDeltaPoints(
+  current: number | null | undefined,
+  previous: number | null | undefined,
+): { label: string; direction: DeltaDirection } {
+  if (!isNumber(current) || !isNumber(previous)) {
+    return { label: EMPTY, direction: "flat" };
+  }
+  const points = (current - previous) * 100;
+  const rounded = Math.abs(points).toFixed(1);
+  if (rounded === "0.0") return { label: "0.0 pp", direction: "flat" };
+  return points > 0
+    ? { label: `+${rounded} pp`, direction: "up" }
+    : { label: `−${rounded} pp`, direction: "down" };
+}

@@ -155,3 +155,42 @@ export function autoGranularity(range: DateRange, now: Date = new Date()): Granu
   if (days <= 200) return "week";
   return "month";
 }
+
+/** Why a bucket doesn't hold a whole period: still running, or cut by the range. */
+export type PartialKind = "so far" | "partial";
+
+const ymdUtc = (date: Date) => date.toISOString().slice(0, 10);
+const addDays = (day: string, n: number) =>
+  ymdUtc(new Date(Date.parse(`${day}T00:00:00Z`) + n * DAY_MS));
+
+function lastDayOf(bucket: string, granularity: Granularity): string {
+  if (granularity === "day") return bucket;
+  if (granularity === "week") return addDays(bucket, 6);
+  const [y, m] = bucket.split("-").map(Number);
+  // Day 0 of the next month is the last day of this one.
+  return ymdUtc(new Date(Date.UTC(y, m, 0)));
+}
+
+/**
+ * Buckets that don't hold a whole period: the one containing today ("so
+ * far"), and weeks or months the range starts or ends partway through
+ * ("partial"). Charts draw them dashed or faded so a half-finished period
+ * doesn't read as a drop.
+ */
+export function partialBuckets(
+  buckets: string[],
+  range: DateRange,
+  granularity: Granularity,
+  now: Date = new Date(),
+): Record<string, PartialKind> {
+  const today = lagosToday(now);
+  const to = range.to ?? today;
+  const from = range.from ?? addDays(to, -29);
+  const result: Record<string, PartialKind> = {};
+  for (const bucket of buckets) {
+    const last = lastDayOf(bucket, granularity);
+    if (bucket <= today && today <= last) result[bucket] = "so far";
+    else if (bucket < from || last > to || last > today) result[bucket] = "partial";
+  }
+  return result;
+}

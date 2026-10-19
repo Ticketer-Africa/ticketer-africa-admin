@@ -117,8 +117,16 @@ small multiples, not a fourth hue.
   Chart / Table switch, and keeps the previous render at 60% opacity while a
   new range loads.
 - Sequential (heatmap): `--chart-1` at five alphas over the surface
-  (0.16 → 1), so dark mode gets dim-to-bright steps from the same token; zero
-  is `--muted`.
+  (0.3, 0.48, 0.64, 0.82, 1), so dark mode gets dim-to-bright steps from the
+  same token. The first step is 1.5:1 against the surface in both themes and
+  each step is at least 1.3:1 against the next. Zero is a hollow cell (1px
+  `--input` ring), not a fill.
+- Partial periods (today so far, a week or month the range cuts) are drawn
+  dashed (lines, areas) or at 40% (bars), and say "(so far)" or "(partial)"
+  in tooltips and table rows; the panel description says why.
+- Two series on very different scales (processed vs net revenue) are two
+  stacked charts sharing the date axis and hover, never one axis or two.
+- Rates change in percentage points ("+0.3 pp"), not relative percent.
 - Tooltips: value in mono semibold first, series name muted, a short line key.
 
 ## Typography
