@@ -90,3 +90,36 @@ export function usePendingRequestsFor(
     enabled: Boolean(targetId),
   });
 }
+
+/**
+ * Filters: status, type, targetType, targetId, requestedById ("Mine"),
+ * decided ("true": anything not PENDING). Newest first.
+ */
+export function useRequests(params: Record<string, string | number | undefined>) {
+  return useQuery({
+    queryKey: [...requestsKey, "list", params],
+    queryFn: () => adminGet<Paged<AdminRequest>>("/requests", params),
+  });
+}
+
+export function useRequest(id: string | undefined) {
+  return useQuery({
+    queryKey: [...requestsKey, id],
+    queryFn: () => adminGet<AdminRequest>(`/requests/${id}`),
+    enabled: Boolean(id),
+  });
+}
+
+/** SUPERADMIN only. `selfApprove` (with a 20+ character reason) for your own request. */
+export const approveRequest = (id: string, body: { reason?: string; selfApprove?: boolean }) =>
+  adminPost<AdminRequest>(`/requests/${id}/approve`, body);
+
+/** SUPERADMIN only; reason ≥ 10 characters. */
+export const rejectRequest = (id: string, reason: string) =>
+  adminPost<AdminRequest>(`/requests/${id}/reject`, { reason });
+
+/** The requester, while it's still PENDING. */
+export const cancelRequest = (id: string) => adminPost<AdminRequest>(`/requests/${id}/cancel`);
+
+/** SUPERADMIN; from FAILED, or APPROVED that stalled for 10+ minutes. */
+export const retryRequest = (id: string) => adminPost<AdminRequest>(`/requests/${id}/retry`);
