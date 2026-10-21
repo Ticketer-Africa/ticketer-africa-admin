@@ -95,10 +95,14 @@ export function usePendingRequestsFor(
  * Filters: status, type, targetType, targetId, requestedById ("Mine"),
  * decided ("true": anything not PENDING). Newest first.
  */
-export function useRequests(params: Record<string, string | number | undefined>) {
+export function useRequests(
+  params: Record<string, string | number | undefined>,
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: [...requestsKey, "list", params],
     queryFn: () => adminGet<Paged<AdminRequest>>("/requests", params),
+    enabled,
   });
 }
 

@@ -92,6 +92,8 @@ interface ActionSheetProps {
   /** False while the extra fields aren't valid yet. */
   canSubmit?: boolean;
   reasonLabel?: string;
+  /** Minimum reason length for tiers 2-3 (default 10). */
+  reasonMin?: number;
   reasonPlaceholder?: string;
   /** The button that opens the sheet (uncontrolled use). */
   trigger?: ReactNode;
@@ -119,6 +121,7 @@ export function ActionSheet({
   children,
   canSubmit = true,
   reasonLabel = "Reason",
+  reasonMin,
   reasonPlaceholder = "Why are you doing this? It goes in the audit log.",
   trigger,
   available = true,
@@ -142,7 +145,7 @@ export function ActionSheet({
   const action = useAdminAction({ invalidate: keys });
 
   const needsReason = tier >= 2;
-  const min = selfApproving ? SELF_APPROVE_REASON_MIN : REASON_MIN;
+  const min = selfApproving ? SELF_APPROVE_REASON_MIN : (reasonMin ?? REASON_MIN);
   const length = reason.trim().length;
   const reasonShort = needsReason && length < min;
 

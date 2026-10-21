@@ -55,7 +55,11 @@ const ACTION_LABELS: Record<string, string> = {
   "request.executed": "carried out the approved request",
   "request.failed": "saw the approved request fail",
   "request.retried": "retried the request",
+  "refund_all.transaction_failed": "saw one refund in a refund-all fail",
 };
+
+/** Every action the audit log can be filtered by. */
+export const AUDIT_ACTIONS = Object.keys(ACTION_LABELS);
 
 export function actionLabel(action: string): string {
   return ACTION_LABELS[action] ?? humanizeAction(action).toLowerCase();

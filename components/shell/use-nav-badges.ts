@@ -1,10 +1,8 @@
 import type { NavBadge } from "@/components/shell/nav-config";
+import { usePendingCount } from "@/services/v2/requests";
 
-/**
- * Counts shown on nav items. The approvals count comes from
- * `usePendingCount()` once the v2 requests endpoint exists (Task 8); until
- * then nothing is shown.
- */
+/** Counts shown on nav items: approval requests waiting for a decision. */
 export function useNavBadges(): Partial<Record<NavBadge, number>> {
-  return {};
+  const pending = usePendingCount();
+  return pending.data ? { approvals: pending.data } : {};
 }
