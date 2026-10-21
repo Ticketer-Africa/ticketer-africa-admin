@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PauseCircleIcon, PlayCircleIcon } from "@hugeicons/core-free-icons";
 import { ActionSheet } from "@/components/actions/action-sheet";
 import { InlineConfirm } from "@/components/actions/inline-confirm";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateTime } from "@/lib/format";
@@ -25,6 +27,8 @@ export function PayoutPauseControl({ className }: { className?: string }) {
   const state = usePauseState();
   const pending = useRequests({ status: "PENDING", type: "PAYOUTS_RESUME", pageSize: 1 });
   const [resumeOpen, setResumeOpen] = useState(false);
+  const [pauseReason, setPauseReason] = useState("");
+  const pauseReasonId = useId();
 
   if (state.isPending) return <Skeleton className={cn("h-16 w-full rounded-lg", className)} />;
   if (state.isError) {
@@ -49,7 +53,6 @@ export function PayoutPauseControl({ className }: { className?: string }) {
         paused && "border-warning/50 bg-warning/5",
         className,
       )}
-      role="status"
     >
       <div className="flex min-w-0 items-start gap-3">
         <HugeiconsIcon
@@ -57,7 +60,8 @@ export function PayoutPauseControl({ className }: { className?: string }) {
           aria-hidden="true"
           className={cn("mt-0.5 size-5 shrink-0", paused ? "text-warning" : "text-success")}
         />
-        <div className="min-w-0 space-y-0.5">
+        {/* Only the state is announced, not the buttons and form beside it. */}
+        <div className="min-w-0 space-y-0.5" role="status">
           <p className="text-sm font-medium text-foreground">
             {paused ? "Payouts are paused" : "Payouts are running"}
           </p>
@@ -87,9 +91,21 @@ export function PayoutPauseControl({ className }: { className?: string }) {
           }
           confirmLabel="Pause"
           invalidate={invalidate}
-          onConfirm={() => pausePayouts()}
+          onOpen={() => setPauseReason("")}
+          onConfirm={() => pausePayouts(pauseReason.trim() || undefined)}
           successMessage="Payouts paused"
-        />
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor={pauseReasonId}>Why (optional)</Label>
+            <Input
+              id={pauseReasonId}
+              value={pauseReason}
+              maxLength={200}
+              placeholder="e.g. Korapay incident"
+              onChange={(e) => setPauseReason(e.target.value)}
+            />
+          </div>
+        </InlineConfirm>
         <Button
           key="resume"
           variant="secondary"

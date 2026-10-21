@@ -64,7 +64,7 @@ export function EventActions({ event }: { event: AdminEventDetail }) {
   const refundAllOpen =
     event.latestRefundAll && ["PENDING", "APPROVED", "FAILED"].includes(event.latestRefundAll.status);
   // The backend counts the exact purchases; it refuses when none are paid.
-  const paidSales = event.stats.processed > 0;
+  const paidSales = event.stats.refundablePurchases > 0;
 
   const can = {
     toggle: !cancelled,

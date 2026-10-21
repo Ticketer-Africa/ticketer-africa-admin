@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { adminGet, adminPost, toApiError } from "./client";
+import { adminGet, adminPost, ApiError, toApiError } from "./client";
 import type {
   AdminRequest,
   AdminTargetType,
@@ -115,8 +115,24 @@ export function useRequest(id: string | undefined) {
 }
 
 /** SUPERADMIN only. `selfApprove` (with a 20+ character reason) for your own request. */
+/**
+ * Approve and retry answer 200 even when the action then failed to run; the
+ * request comes back FAILED. Turn that into an error so the sheet shows it
+ * instead of a success toast.
+ */
+function ranOrThrow(request: AdminRequest): AdminRequest {
+  if (request.status === "FAILED") {
+    throw new ApiError(
+      200,
+      `It was approved but didn't run: ${request.failureReason ?? "no reason given"}. You can retry it from this page.`,
+      "RUN_FAILED",
+    );
+  }
+  return request;
+}
+
 export const approveRequest = (id: string, body: { reason?: string; selfApprove?: boolean }) =>
-  adminPost<AdminRequest>(`/requests/${id}/approve`, body);
+  adminPost<AdminRequest>(`/requests/${id}/approve`, body).then(ranOrThrow);
 
 /** SUPERADMIN only; reason ≥ 10 characters. */
 export const rejectRequest = (id: string, reason: string) =>
@@ -126,4 +142,5 @@ export const rejectRequest = (id: string, reason: string) =>
 export const cancelRequest = (id: string) => adminPost<AdminRequest>(`/requests/${id}/cancel`);
 
 /** SUPERADMIN; from FAILED, or APPROVED that stalled for 10+ minutes. */
-export const retryRequest = (id: string) => adminPost<AdminRequest>(`/requests/${id}/retry`);
+export const retryRequest = (id: string) =>
+  adminPost<AdminRequest>(`/requests/${id}/retry`).then(ranOrThrow);

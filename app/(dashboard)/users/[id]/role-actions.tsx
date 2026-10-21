@@ -82,7 +82,8 @@ export function RoleActions({ user }: { user: AdminUserDetail }) {
         tier={2}
         open={tier2}
         onOpenChange={onOpenChange}
-        available={plainTarget !== null}
+        // After a refetch the role may have moved on; never send a stale target.
+        available={target !== null && target === plainTarget}
         title={target === "ORGANIZER" ? `Make ${user.name} an organizer` : `Make ${user.name} a regular user`}
         description={
           target === "ORGANIZER"
@@ -100,7 +101,7 @@ export function RoleActions({ user }: { user: AdminUserDetail }) {
         tier={3}
         open={target !== null && !tier2}
         onOpenChange={onOpenChange}
-        available={adminTargets.length > 0}
+        available={target !== null && adminTargets.includes(target)}
         title={
           target && isAdminRole(target)
             ? `Make ${user.name} ${target === "ADMIN" ? "an admin" : "a superadmin"}`

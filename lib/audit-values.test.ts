@@ -25,7 +25,25 @@ describe("formatAuditValue", () => {
     expect(formatAuditValue("suspendedAt", null)).toBe("—");
     expect(formatAuditValue("isActive", false)).toBe("No");
     expect(formatAuditValue("isActive", true)).toBe("Yes");
-    expect(formatAuditValue("meta", { a: 1 })).toBe('{"a":1}');
+  });
+
+  it("reads every balance field as kobo, including balanceAfter", () => {
+    expect(formatAuditValue("balanceAfter", "2500000")).toBe("₦25,000.00");
+    expect(formatAuditValue("balanceBefore", "0")).toBe("₦0.00");
+  });
+
+  it("adds ₦ to amounts the API already gave in naira", () => {
+    expect(formatAuditValue("valueAmount", 750.5)).toBe("₦750.50");
+  });
+
+  it("spells out nested objects and lists, formatting values by their own key", () => {
+    expect(formatAuditValue("meta", { a: 1 })).toBe("A: 1");
+    expect(
+      formatAuditValue("event", { name: "Jazz", amountKobo: "5000", isActive: true }),
+    ).toBe("Name: Jazz; Amount kobo: ₦50.00; Is active: Yes");
+    expect(formatAuditValue("delistedTicketIds", ["t1", "t2"])).toBe("t1, t2");
+    expect(formatAuditValue("fields", [])).toBe("—");
+    expect(formatAuditValue("meta", {})).toBe("—");
   });
 });
 

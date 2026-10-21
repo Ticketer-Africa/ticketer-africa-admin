@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FilterBar, FilterSelect } from "@/components/data-table/filter-bar";
+import { Pagination } from "@/components/data-table/pagination";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { PageHeader } from "@/components/page-header";
@@ -10,26 +11,42 @@ import { Panel } from "@/components/ui/panel";
 import { Segmented } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelative } from "@/lib/format";
+import { defineListDefaults, useListParams } from "@/lib/list-params";
 import { useMe } from "@/services/v2/me";
 import { REQUEST_TYPE_LABELS } from "@/services/v2/request-labels";
 import { useRequests } from "@/services/v2/requests";
+import type { AdminRequestType } from "@/services/v2/types";
 
 type Tab = "pending" | "decided" | "mine";
+const TABS = ["pending", "decided", "mine"] as const;
+
+// `tab` lives in the URL with the other list state but is never sent: each
+// tab maps to its own API filter below.
+const DEFAULTS = defineListDefaults({
+  filters: { tab: undefined, type: undefined },
+  sort: "createdAt",
+  order: "desc",
+});
+
+const TYPE_OPTIONS = (Object.keys(REQUEST_TYPE_LABELS) as AdminRequestType[]).map((value) => ({
+  value,
+  label: REQUEST_TYPE_LABELS[value],
+}));
 
 export default function ApprovalsPage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const search = useSearchParams();
-  const tab: Tab = (["pending", "decided", "mine"] as const).find((t) => t === search.get("tab")) ?? "pending";
+  const { params, setFilter, setFilters, setPage } = useListParams(DEFAULTS);
+  const tab: Tab = TABS.find((t) => t === params.tab) ?? "pending";
   const { data: me } = useMe();
 
-  const params =
+  const { tab: _tab, ...listParams } = params;
+  void _tab;
+  const scope =
     tab === "pending"
-      ? { status: "PENDING", pageSize: 50 }
+      ? { status: "PENDING" }
       : tab === "decided"
-        ? { decided: "true", pageSize: 50 }
-        : { requestedById: me?.id, pageSize: 50 };
-  const query = useRequests(params, { enabled: tab !== "mine" || Boolean(me) });
+        ? { decided: "true" }
+        : { requestedById: me?.id };
+  const query = useRequests({ ...listParams, ...scope }, { enabled: tab !== "mine" || Boolean(me) });
 
   return (
     <div>
@@ -41,13 +58,22 @@ export default function ApprovalsPage() {
         aria-label="Which requests"
         className="mb-4"
         value={tab}
-        onValueChange={(next) => router.replace(next === "pending" ? pathname : `${pathname}?tab=${next}`)}
+        onValueChange={(next) => setFilters({ tab: next === "pending" ? undefined : next })}
         options={[
           { value: "pending", label: "Waiting" },
           { value: "decided", label: "Decided" },
           { value: "mine", label: "Mine" },
         ]}
       />
+      <FilterBar>
+        <FilterSelect
+          label="Type"
+          anyLabel="Any type"
+          value={params.type}
+          onChange={(value) => setFilter("type", value)}
+          options={TYPE_OPTIONS}
+        />
+      </FilterBar>
       {query.isPending || (tab === "mine" && !me) ? (
         <div className="space-y-2" aria-busy="true">
           {Array.from({ length: 4 }, (_, i) => (
@@ -81,7 +107,7 @@ export default function ApprovalsPage() {
                   <div className="min-w-0 space-y-1">
                     <Link
                       href={`/approvals/${request.id}`}
-                      className="block text-sm font-medium text-foreground after:absolute after:inset-0 focus-visible:outline-none"
+                      className="block text-sm font-medium text-foreground rounded-sm after:absolute after:inset-0 after:rounded-sm focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring focus-visible:after:ring-inset"
                     >
                       {request.summary}
                     </Link>
@@ -101,6 +127,13 @@ export default function ApprovalsPage() {
               </li>
             ))}
           </ul>
+          <Pagination
+            page={query.data.page}
+            pageSize={query.data.pageSize}
+            total={query.data.total}
+            onPage={setPage}
+            noun="requests"
+          />
         </Panel>
       )}
     </div>

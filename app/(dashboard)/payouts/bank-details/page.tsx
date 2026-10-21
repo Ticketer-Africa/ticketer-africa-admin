@@ -128,7 +128,7 @@ function DestinationCard({ dest }: { dest: AdminDestination }) {
           {routing && <span className="text-xs text-warning">Account change waiting</span>}
         </div>
         <p className="text-sm text-foreground">
-          {owner ? <EntityLink kind="organizer" id={dest.userId} label={owner.name} /> : <span className="num">{dest.userId}</span>}
+          {owner ? <EntityLink kind={owner.role === "ORGANIZER" ? "organizer" : "user"} id={dest.userId} label={owner.name} /> : <span className="num">{dest.userId}</span>}
           {owner && <span className="num text-xs text-muted-foreground"> · {owner.email}</span>}
         </p>
         <p className={mismatch ? "flex items-start gap-1.5 text-sm text-foreground" : "text-sm text-muted-foreground"}>

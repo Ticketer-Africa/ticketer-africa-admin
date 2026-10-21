@@ -26,6 +26,8 @@ interface InlineConfirmProps<T> {
   message?: ReactNode;
   /** Options under the question, e.g. an "also email recipients" checkbox. */
   children?: ReactNode;
+  /** Called on each open, to put those options back to their defaults. */
+  onOpen?: () => void;
   /** The confirm button text. Defaults to the label. */
   confirmLabel?: string;
   onConfirm: () => Promise<T>;
@@ -45,6 +47,7 @@ export function InlineConfirm<T>({
   label,
   message,
   children,
+  onOpen,
   confirmLabel,
   onConfirm,
   invalidate,
@@ -65,7 +68,10 @@ export function InlineConfirm<T>({
     if (!next && action.isPending) return;
     // A fresh open unlocks; closing keeps a finished action locked so a
     // click on the fading confirm can't send it again.
-    if (next) action.reset();
+    if (next) {
+      action.reset();
+      onOpen?.();
+    }
     setOpen(next);
   }
 

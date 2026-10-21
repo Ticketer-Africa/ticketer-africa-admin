@@ -93,8 +93,15 @@ export function EventEditSheet({ event, open, onOpenChange, available }: EventEd
   const dateInvalid = dateIso === null;
   const canSubmit = !nameMissing && !dateInvalid && Object.keys(changes).length > 0;
 
+  // Start from the event as it is now each time the sheet opens, however it
+  // was opened (the page's Edit button sets `open` without calling us).
+  const [seenOpen, setSeenOpen] = useState(open);
+  if (open !== seenOpen) {
+    setSeenOpen(open);
+    if (open) setDraft(draftOf(event));
+  }
+
   function handleOpenChange(next: boolean) {
-    if (next) setDraft(draftOf(event));
     onOpenChange(next);
   }
 

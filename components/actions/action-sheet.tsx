@@ -159,6 +159,15 @@ export function ActionSheet({
     action.reset();
   }
 
+  // Also reset on open: onCloseAutoFocus doesn't fire if the sheet was
+  // closed some other way (e.g. it unmounted mid-close), and a stale
+  // success would leave the confirm button locked.
+  const [seenOpen, setSeenOpen] = useState(open);
+  if (open !== seenOpen) {
+    setSeenOpen(open);
+    if (open) resetForm();
+  }
+
   function setOpen(next: boolean) {
     // Don't let a half-sent action vanish.
     if (!next && action.isPending) return;

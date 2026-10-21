@@ -136,43 +136,58 @@ export default function OrganizerDetailPage() {
 }
 
 function OrganizerActions({ org }: { org: AdminOrganizerDetail }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<"verify" | "unverify" | null>(null);
   const verified = Boolean(org.organizerVerifiedAt);
+  const summary = (
+    <KeyValues
+      columns={1}
+      items={[
+        { label: "Organizer", value: org.name },
+        { label: "Email", value: <span className="break-all">{org.email}</span>, mono: true },
+        { label: "Events", value: formatCount(org.events.length), mono: true },
+      ]}
+    />
+  );
+  const sheetProps = (key: "verify" | "unverify") => ({
+    open: open === key,
+    onOpenChange: (next: boolean) => setOpen(next ? key : null),
+  });
   return (
     <>
       <Button variant="ghost" asChild>
         <Link href={entityHref("user", org.id)}>User account</Link>
       </Button>
-      <Button key="verify-button" variant="secondary" onClick={() => setOpen(true)}>
+      <Button key="verify-button" variant="secondary" onClick={() => setOpen(verified ? "unverify" : "verify")}>
         {verified ? "Remove verification" : "Verify"}
       </Button>
+      {/* Two stable sheets: after a refetch flips `verified`, an open sheet
+          keeps its own action instead of becoming the other one. */}
       <ActionSheet
-        key={verified ? "unverify" : "verify"}
+        key="verify"
+        {...sheetProps("verify")}
         tier={2}
-        open={open}
-        onOpenChange={setOpen}
-        available
-        title={verified ? "Remove verification" : "Verify this organizer"}
-        description={
-          verified
-            ? "They lose the verified mark. Nothing else about their account changes."
-            : "Marks them as checked by Ticketer Africa. It's a label for now; it doesn't change what they can do."
-        }
-        confirmLabel={verified ? "Remove verification" : "Verify"}
-        destructive={verified}
-        successMessage={verified ? "Verification removed" : "Organizer verified"}
+        available={!verified}
+        title="Verify this organizer"
+        description="Marks them as checked by Ticketer Africa. It's a label for now; it doesn't change what they can do."
+        confirmLabel="Verify"
+        successMessage="Organizer verified"
         invalidate={[organizersKey, auditKey]}
-        summary={
-          <KeyValues
-            columns={1}
-            items={[
-              { label: "Organizer", value: org.name },
-              { label: "Email", value: <span className="break-all">{org.email}</span>, mono: true },
-              { label: "Events", value: formatCount(org.events.length), mono: true },
-            ]}
-          />
-        }
-        onSubmit={(reason) => (verified ? unverifyOrganizer(org.id, reason) : verifyOrganizer(org.id, reason))}
+        summary={summary}
+        onSubmit={(reason) => verifyOrganizer(org.id, reason)}
+      />
+      <ActionSheet
+        key="unverify"
+        {...sheetProps("unverify")}
+        tier={2}
+        available={verified}
+        title="Remove verification"
+        description="They lose the verified mark. Nothing else about their account changes."
+        confirmLabel="Remove verification"
+        destructive
+        successMessage="Verification removed"
+        invalidate={[organizersKey, auditKey]}
+        summary={summary}
+        onSubmit={(reason) => unverifyOrganizer(org.id, reason)}
       />
     </>
   );

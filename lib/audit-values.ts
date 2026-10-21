@@ -1,4 +1,4 @@
-import { EMPTY, formatDateTime } from "@/lib/format";
+import { EMPTY, formatDateTime, formatNaira } from "@/lib/format";
 
 /*
  * Audit before/after snapshots are raw JSON from the database. BigInt money
@@ -21,7 +21,11 @@ const MONEY_KEYS = new Set([
   "platformShare",
 ]);
 
-const isMoneyKey = (key: string) => MONEY_KEYS.has(key) || /Kobo$/i.test(key);
+// balance, balanceAfter, balanceBefore... are all wallet kobo.
+const isMoneyKey = (key: string) =>
+  MONEY_KEYS.has(key) || /Kobo$/i.test(key) || /^balance/i.test(key);
+/** Fields the API already converted to naira before they were audited. */
+const NAIRA_KEYS = new Set(["valueAmount"]);
 const KOBO = /^-?\d+$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
@@ -42,8 +46,21 @@ export function formatAuditValue(key: string, value: unknown): string {
     if (ISO_TIMESTAMP.test(value)) return formatDateTime(value);
     return value;
   }
-  if (typeof value === "number") return String(value);
-  return JSON.stringify(value);
+  if (typeof value === "number") {
+    return NAIRA_KEYS.has(key) ? formatNaira(value) : String(value);
+  }
+  if (Array.isArray(value)) {
+    return value.length === 0 ? EMPTY : value.map((v) => formatAuditValue(key, v)).join(", ");
+  }
+  if (typeof value === "object") {
+    // Nested snapshots read as "Name: Jazz Night; Amount: ₦50.00", each value
+    // formatted by its own key so money inside them is naira too.
+    const parts = Object.entries(value as Record<string, unknown>).map(
+      ([k, v]) => `${humanizeKey(k)}: ${formatAuditValue(k, v)}`,
+    );
+    return parts.length === 0 ? EMPTY : parts.join("; ");
+  }
+  return String(value);
 }
 
 /** "suspendedReason" → "Suspended reason". */

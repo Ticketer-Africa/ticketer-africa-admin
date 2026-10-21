@@ -144,6 +144,7 @@ export function TransactionActions({ txn }: { txn: AdminTransactionDetail }) {
       <InlineConfirm
         key="resend"
         available={can.resend}
+        onOpen={() => setIncludeRecipients(false)}
         label="Resend tickets"
         message={
           <>

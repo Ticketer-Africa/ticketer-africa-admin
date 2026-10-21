@@ -39,6 +39,12 @@ const STALE_APPROVED_MS = 10 * 60 * 1000;
 const koboToNaira = (value: unknown) =>
   typeof value === "string" && /^-?\d+$/.test(value) ? Number(BigInt(value)) / 100 : null;
 
+const FORCE_FAIL_OUTCOMES: Record<string, (r: Record<string, unknown>) => string> = {
+  settled: () => "The provider had paid it, so it was marked paid",
+  failed: (r) => (r.walletRefunded ? "Failed; the money went back to their wallet" : "Failed"),
+  already: (r) => `Nothing to do: it was already ${String(r.status ?? "finished").toLowerCase()}`,
+};
+
 /** The stored payload and result in plain words; amounts in naira. */
 function detailsOf(request: AdminRequest): KeyValueItem[] {
   const p = request.payload as Record<string, unknown>;
@@ -80,7 +86,7 @@ function detailsOf(request: AdminRequest): KeyValueItem[] {
       return [{ label: "New role", value: String(p.role ?? "").toLowerCase().replace(/^\w/, (c) => c.toUpperCase()) }];
     case "PAYOUT_FORCE_FAIL":
       return r.outcome
-        ? [{ label: "What happened", value: r.outcome === "settled" ? "The provider had paid it, so it was marked paid" : r.outcome === "failed" ? "Failed" : String(r.outcome) }]
+        ? [{ label: "What happened", value: FORCE_FAIL_OUTCOMES[String(r.outcome)]?.(r) ?? String(r.outcome) }]
         : [];
     default:
       return [];
@@ -249,7 +255,7 @@ function Decisions({ request }: { request: AdminRequest }) {
         confirmLabel="Retry"
         invalidate={invalidate}
         onConfirm={() => retryRequest(request.id)}
-        successMessage={(result) => (result.status === "EXECUTED" ? "It ran" : `Still ${result.status.toLowerCase()}`)}
+        successMessage={(result) => (result.status === "EXECUTED" ? "It ran" : "Still running; check back in a minute")}
       />
       {can.decide && (
         <>
@@ -275,7 +281,7 @@ function Decisions({ request }: { request: AdminRequest }) {
         title="Approve and run"
         description="It runs as soon as you approve. You can't undo it from here."
         confirmLabel="Approve and run"
-        successMessage="Approved"
+        successMessage="Approved, and it ran"
         invalidate={invalidate}
         summary={<p className="text-foreground">{request.summary}</p>}
         onSubmit={() => approveRequest(request.id, note.trim() ? { reason: note.trim() } : {})}
@@ -311,7 +317,7 @@ function Decisions({ request }: { request: AdminRequest }) {
         description="Only when the other founder can't respond. It runs straight away, and every other superadmin is emailed with your reason."
         confirmLabel="Approve and run"
         destructive
-        successMessage="Approved by you. The other founder has been emailed."
+        successMessage="Approved by you, and it ran. The other founder has been emailed."
         invalidate={invalidate}
         reasonLabel="Why you can't wait"
         summary={<p className="text-foreground">{request.summary}</p>}

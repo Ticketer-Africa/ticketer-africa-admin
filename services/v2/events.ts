@@ -96,6 +96,8 @@ export interface EventStats {
   capacity: number;
   /** Naira. */
   processed: number;
+  /** Paid purchases not yet refunded: what a refund-all would act on. */
+  refundablePurchases: number;
 }
 
 export interface EventRecentTransaction {

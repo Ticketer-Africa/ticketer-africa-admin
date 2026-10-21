@@ -2,7 +2,7 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { adminGet, adminPost, type QueryParams } from "./client";
-import type { AuditEntry, Paged, PendingRequestRef, PersonRef } from "./types";
+import type { AuditEntry, Paged, PendingRequestRef, PersonRef, Role } from "./types";
 import type { DestinationStatus, PayoutStatus } from "./organizers";
 
 /* Shapes from backend src/v2/admin/payouts/admin-payouts.service.ts. */
@@ -120,7 +120,7 @@ export interface AdminDestination {
   pendingRouting?: unknown;
   reviewedAt?: string | null;
   createdAt: string;
-  user?: PersonRef;
+  user?: PersonRef & { role?: Role };
 }
 
 export function useDestinations(status: DestinationStatus | undefined) {

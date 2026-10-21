@@ -172,9 +172,12 @@ function PaletteBody({ onDone }: { onDone: () => void }) {
   const pages = NAV.flatMap((group) => group.items).filter(
     (item) => !searching || item.label.toLowerCase().includes(lower),
   );
-  const groups = GROUP_ORDER.filter(
-    (group) => (results.data?.[group]?.length ?? 0) > 0,
-  );
+  // Hits from an earlier term would let Enter open the wrong record, so only
+  // show results that answer exactly what's typed now.
+  const fresh = query.trim() === term.trim() && !results.isPlaceholderData;
+  const groups = fresh
+    ? GROUP_ORDER.filter((group) => (results.data?.[group]?.length ?? 0) > 0)
+    : [];
 
   const run = (action: () => void) => {
     onDone();
@@ -201,7 +204,7 @@ function PaletteBody({ onDone }: { onDone: () => void }) {
       />
       <CommandList>
         <CommandEmpty>
-          {searching && (results.isFetching || query !== term)
+          {searching && (results.isFetching || !fresh)
             ? "Searching…"
             : searching && results.isError
               ? "Search didn't work. Try again."

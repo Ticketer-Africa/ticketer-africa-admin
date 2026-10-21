@@ -15,7 +15,8 @@ export function TicketActions({ ticket }: { ticket: AdminTicketDetail }) {
   return (
     <InlineConfirm
       key="undo-checkin"
-      available={ticket.isUsed}
+      // A voided ticket can't be scanned again, so there's nothing to undo.
+      available={ticket.isUsed && !ticket.voidedAt}
       label="Undo check-in"
       message={
         <>
