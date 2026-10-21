@@ -40,7 +40,7 @@ describe("formatAuditValue", () => {
     expect(formatAuditValue("meta", { a: 1 })).toBe("A: 1");
     expect(
       formatAuditValue("event", { name: "Jazz", amountKobo: "5000", isActive: true }),
-    ).toBe("Name: Jazz; Amount kobo: ₦50.00; Is active: Yes");
+    ).toBe("Name: Jazz; Amount: ₦50.00; Is active: Yes");
     expect(formatAuditValue("delistedTicketIds", ["t1", "t2"])).toBe("t1, t2");
     expect(formatAuditValue("fields", [])).toBe("—");
     expect(formatAuditValue("meta", {})).toBe("—");
