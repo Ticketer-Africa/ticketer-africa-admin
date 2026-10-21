@@ -1,6 +1,8 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import Axios from "@/services/axios";
+import type { TicketVerifyResult } from "@/types/tickets.type";
 import { adminGet, adminPost, type QueryParams } from "./client";
 import type { Paged, PendingRequestRef, PersonRef } from "./types";
 import type { TransactionStatus, TransactionType } from "./transactions";
@@ -100,3 +102,16 @@ export const undoCheckin = (id: string) =>
   adminPost<{ id: string; isUsed: false; scansRemoved: number; cacheCleared: boolean }>(
     `/tickets/${id}/undo-checkin`,
   );
+
+/**
+ * Check a ticket at the gate. This is the shared check-in endpoint (not the
+ * admin API): the first valid scan marks the ticket used.
+ */
+export function useVerifyTicket() {
+  return useMutation({
+    mutationFn: async (payload: { ticketId?: string; code?: string; eventId: string }) => {
+      const res = await Axios.post<TicketVerifyResult>("/v1/tickets/verify", payload);
+      return res.data;
+    },
+  });
+}

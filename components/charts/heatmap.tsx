@@ -82,7 +82,7 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
                     onPointerEnter={() => cell && setHovered(cell)}
                     className={cn(
                       "h-[1.375rem] rounded-[3px] transition-shadow duration-state",
-                      level < 0 && HOLLOW,
+                      level < 0 && !active && HOLLOW,
                       active && "shadow-[0_0_0_2px_oklch(var(--foreground))]",
                     )}
                     style={{ backgroundColor: fill(level) }}

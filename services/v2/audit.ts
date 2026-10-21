@@ -29,3 +29,13 @@ export function useRecentActivity(limit = 8) {
     refetchInterval: 60_000,
   });
 }
+
+/** Everything recorded for one approval request (asked, decided, ran). */
+export function useRequestActivity(requestId: string | undefined) {
+  return useQuery({
+    queryKey: [...auditKey, "request", requestId],
+    queryFn: () =>
+      adminGet<Paged<AuditEntry>>("/audit", { requestId, pageSize: 50, order: "asc" }),
+    enabled: Boolean(requestId),
+  });
+}

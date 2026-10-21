@@ -11,7 +11,7 @@ import { DetailHeader } from "@/components/detail-header";
 import { ErrorState } from "@/components/error-state";
 import { KeyValues, type KeyValueItem } from "@/components/key-values";
 import { Money } from "@/components/money";
-import { RecordActivity } from "@/components/record-activity";
+import { ActivityFeed } from "@/components/activity-feed";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,7 @@ import { Panel, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCount, formatDateTime } from "@/lib/format";
-import { auditKey } from "@/services/v2/audit";
+import { auditKey, useRequestActivity } from "@/services/v2/audit";
 import { useMe } from "@/services/v2/me";
 import { REQUEST_TYPE_LABELS, requestTargetHref } from "@/services/v2/request-labels";
 import {
@@ -174,7 +174,7 @@ export default function ApprovalDetailPage() {
               )}
             </div>
           </Panel>
-          <RecordActivity targetType="request" targetId={request.id} />
+          <RequestActivity requestId={request.id} />
         </div>
         <Panel className="min-w-0">
           <PanelHeader>
@@ -318,5 +318,25 @@ function Decisions({ request }: { request: AdminRequest }) {
         onSubmit={(reason) => approveRequest(request.id, { reason, selfApprove: true })}
       />
     </>
+  );
+}
+
+function RequestActivity({ requestId }: { requestId: string }) {
+  const activity = useRequestActivity(requestId);
+  return (
+    <Panel>
+      <PanelHeader>
+        <PanelTitle>Activity</PanelTitle>
+      </PanelHeader>
+      <div className="p-4">
+        {activity.isPending ? (
+          <Skeleton className="h-10 w-full" />
+        ) : activity.isError ? (
+          <ErrorState title="Couldn't load activity" error={activity.error} onRetry={() => void activity.refetch()} />
+        ) : (
+          <ActivityFeed entries={activity.data.items} showTarget emptyText="Nothing recorded yet." />
+        )}
+      </div>
+    </Panel>
   );
 }

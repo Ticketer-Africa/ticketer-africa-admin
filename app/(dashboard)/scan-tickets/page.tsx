@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
 import { Spinner } from "@/components/ui/spinner";
 import { extractTicketData, parseTicketData } from "@/lib/qr-utils";
-import { useVerifyTicket } from "@/services/admin/tickets.queries";
+import { useVerifyTicket } from "@/services/v2/tickets";
 import { toApiError } from "@/services/v2/client";
 import { useTicket } from "@/services/v2/tickets";
 import type { TicketVerifyResult } from "@/types/tickets.type";

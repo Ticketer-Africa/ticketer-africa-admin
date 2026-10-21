@@ -152,7 +152,12 @@ export function TransactionActions({ txn }: { txn: AdminTransactionDetail }) {
         }
         confirmLabel="Resend"
         invalidate={[auditKey]}
-        onConfirm={() => resendTickets(txn.id, hasRecipients && includeRecipients)}
+        onConfirm={async () => {
+          const result = await resendTickets(txn.id, hasRecipients && includeRecipients);
+          // Never carry the tick over to the next resend.
+          setIncludeRecipients(false);
+          return result;
+        }}
         successMessage={(result) => {
           const tickets = `${formatCount(result.ticketCount)} ticket${result.ticketCount === 1 ? "" : "s"}`;
           const recipients = result.recipientEmailsSent
