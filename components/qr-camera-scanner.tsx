@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Camera01Icon, CameraOff01Icon } from "@hugeicons/core-free-icons";
+import { CameraOff01Icon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 interface QRCameraScannerProps {
   onScan: (rawText: string) => void;
@@ -52,7 +54,14 @@ export function QRCameraScanner({ onScan, active }: QRCameraScannerProps) {
 
         await scanner.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 200, height: 200 } },
+          {
+            fps: 10,
+            // Three quarters of the shorter side: a big target on a phone.
+            qrbox: (width, height) => {
+              const side = Math.floor(Math.min(width, height) * 0.75);
+              return { width: side, height: side };
+            },
+          },
           (decodedText) => {
             if (!cancelled) {
               cancelled = true;
@@ -66,9 +75,10 @@ export function QRCameraScanner({ onScan, active }: QRCameraScannerProps) {
             // per-frame not-found errors are expected — ignore
           },
         );
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const name = (err as { name?: string } | null)?.name;
         if (
-          err?.name === "NotAllowedError" ||
+          name === "NotAllowedError" ||
           (typeof err === "string" && err.toLowerCase().includes("permission"))
         ) {
           setPermissionDenied(true);
@@ -92,44 +102,36 @@ export function QRCameraScanner({ onScan, active }: QRCameraScannerProps) {
 
   if (permissionDenied) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border bg-muted p-8">
-        <HugeiconsIcon icon={CameraOff01Icon} className="h-12 w-12 text-muted-foreground" />
-        <p className="text-center font-medium text-foreground">
-          Camera access denied
+      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-surface p-8 text-center">
+        <HugeiconsIcon icon={CameraOff01Icon} aria-hidden="true" className="size-10 text-muted-foreground" />
+        <p className="text-base font-medium text-foreground">Camera access is blocked</p>
+        <p className="max-w-xs text-sm text-muted-foreground">
+          Allow the camera for this site in your browser settings, then reload. Or switch to
+          &ldquo;Paste code&rdquo; above.
         </p>
-        <p className="max-w-xs text-center text-sm text-muted-foreground">
-          Allow camera access in your browser settings, then refresh the page to
-          scan tickets.
-        </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="text-sm text-foreground underline"
-        >
-          Retry
-        </button>
+        <Button variant="secondary" onClick={() => window.location.reload()}>
+          Reload
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="relative mx-auto w-full max-w-sm">
+    <div className="relative mx-auto w-full">
       {/* html5-qrcode mounts its own video + overlay into this div */}
       <div
         id={SCANNER_ELEMENT_ID}
-        className="w-full overflow-hidden rounded-xl bg-black"
-        style={{ minHeight: 280 }}
+        className="aspect-square w-full overflow-hidden rounded-lg border border-border bg-black"
       />
       {starting && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/60">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
+        <div
+          role="status"
+          className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-black/60 text-sm text-white"
+        >
+          <Spinner className="size-5" />
+          Starting the camera…
         </div>
       )}
-      <div className="mt-2 flex justify-center">
-        <div className="flex items-center gap-1 rounded-full bg-gray-800 px-3 py-1 text-xs text-white">
-          <HugeiconsIcon icon={Camera01Icon} className="h-3 w-3" />
-          Point at ticket QR code
-        </div>
-      </div>
     </div>
   );
 }

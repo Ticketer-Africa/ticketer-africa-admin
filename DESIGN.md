@@ -1,132 +1,224 @@
 # Design
 
-## Theme
+## Scene and theme
 
-Dark by default (a considered choice, not a toggle-only afterthought), light
-theme fully supported via `next-themes` for anyone who prefers it. Scene:
-a late-night finance-ops desk — an operator scanning a dense ledger, the
-numbers on screen the only bright, precise thing in the room. Near-black and
-near-white surfaces carry no hue tint (pure neutrals) so nothing competes
-with the data; the brand's point of view lives entirely in the primary and
-accent colors and in the monospaced treatment of every figure.
+A founder at a laptop by day, checking money and fixing problems; the same
+founder on a phone in a dark venue at night, at the gate or answering "my
+tickets never came". So the theme **follows the system**, and light and dark
+are both first-class. Neither is the "real" one.
 
-Color strategy: **restrained**. Primary and accent are used deliberately —
-active nav state, primary buttons, focus rings, chart lines, links, and the
-"needs attention" signal — never as large surface washes. Data density and
-legibility come first.
+Colour strategy: **restrained**. Neutrals lean slightly toward the brand's
+navy (hue 255–260, chroma 0.003–0.015); the dark background is the brand's
+`#0b0e14`. One accent, the brand's terracotta, used only for primary actions,
+the current selection, focus rings and the key chart series. Semantic colours
+(green, amber, crimson, blue) stay clearly apart from terracotta, and danger
+always carries a word or an icon, never colour alone.
 
-## Color Tokens (OKLCH)
+References: Linear, Stripe, Raycast, Vercel, Resend, Attio. Hairline 1px
+borders instead of shadows; shadows only on overlays; small radii; confident
+page titles with one-line descriptions; dense tables; a command palette.
 
-### Dark (default)
+## Colour tokens (OKLCH)
 
-```css
---background: oklch(0.09 0 0);
---surface: oklch(0.13 0 0);              /* cards, popovers, table body */
---foreground: oklch(0.95 0.004 200);
---muted: oklch(0.17 0 0);
---muted-foreground: oklch(0.62 0.01 200);
---border: oklch(0.20 0 0);
---input: oklch(0.20 0 0);
---primary: oklch(0.68 0.15 200);         /* confident cyan-blue */
---primary-foreground: oklch(0.98 0 0);
---accent: oklch(0.78 0.14 75);           /* amber — reserved for attention */
---accent-foreground: oklch(0.98 0 0);
---destructive: oklch(0.60 0.19 25);
---destructive-foreground: oklch(0.98 0 0);
---success: oklch(0.65 0.15 155);
---success-foreground: oklch(0.98 0 0);
---ring: oklch(0.68 0.15 200);
---chart-1: oklch(0.68 0.15 200);         /* primary */
---chart-2: oklch(0.78 0.14 75);          /* amber */
---chart-3: oklch(0.65 0.15 155);         /* green */
---chart-4: oklch(0.65 0.16 290);         /* violet */
---chart-5: oklch(0.65 0.17 15);          /* coral */
---sidebar-background: oklch(0.06 0 0);   /* recedes slightly below content */
---sidebar-foreground: oklch(0.85 0.004 200);
---sidebar-primary: oklch(0.68 0.15 200);
---sidebar-primary-foreground: oklch(0.98 0 0);
---sidebar-accent: oklch(0.12 0 0);
---sidebar-accent-foreground: oklch(0.95 0.004 200);
---sidebar-border: oklch(0.14 0 0);
---sidebar-ring: oklch(0.68 0.15 200);
-```
+Stored as `L C H` triplets in `app/globals.css` so Tailwind can add alpha
+(`oklch(var(--x) / <alpha-value>)`). Values marked * were moved from the
+starting values to pass contrast.
 
-### Light
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--background` | 0.985 0.003 255 | 0.165 0.012 260 (#0b0e14) | page |
+| `--surface` | 1 0 0 | 0.2 0.013 260 | panels, tables |
+| `--popover` | 1 0 0 | 0.215 0.014 260 | menus, sheets, palette |
+| `--sidebar-background` | 0.965 0.005 255 | 0.145 0.012 260 | sidebar, nav sheet |
+| `--foreground` | 0.2 0.015 255 | 0.95 0.008 255 | text |
+| `--muted-foreground` | 0.47 0.015 255 | 0.7 0.015 255 | secondary text, placeholders |
+| `--muted` | 0.955 0.005 255 | 0.235 0.014 260 | skeletons, subtle fills |
+| `--accent` | 0.95 0.006 255 | 0.25 0.014 260 | hover / highlighted rows |
+| `--border` | 0.91 0.006 255 | 0.28 0.014 260 | hairlines |
+| `--input` | 0.87 0.008 255 | 0.32 0.014 260 | button outlines, search trigger (labelled, decorative) |
+| `--control-border` (new) | 0.6 0.018 255 | 0.54 0.018 258 | boundaries of inputs, textareas, selects, checkboxes, the off switch track (`border-control`, `bg-control`) |
+| `--primary` (terracotta) | 0.57 0.155 37 | 0.7 0.14 37 | fills, focus ring, active icon |
+| `--primary-foreground` | 0.99 0 0 | 0.22 0.07 35 | text on terracotta |
+| `--primary-text` (new) | 0.525 0.15 37 | 0.74 0.13 37 | terracotta text on a tint |
+| `--destructive` (crimson) | 0.53 0.21 10 | 0.66 0.19 10 | danger |
+| `--success` | 0.5 0.12 155 * | 0.72 0.15 155 | |
+| `--warning` | 0.525 0.12 68 * | 0.8 0.14 80 | |
+| `--info` | 0.515 0.13 245 * | 0.72 0.12 245 | |
+| `--*-foreground` on semantic fills | 0.99 0 0 | dark ink of the same hue (L 0.2–0.22) | |
+| `--chart-1` | 0.57 0.155 37 | 0.665 0.14 37 * | key series (terracotta) |
+| `--chart-2` | 0.62 0.105 250 * | 0.665 0.105 250 * | slate blue |
+| `--chart-3` | 0.53 0.13 155 | 0.72 0.15 155 | green (not used for series) |
+| `--chart-4` | 0.62 0.14 70 | 0.8 0.14 80 | amber (not used for series) |
+| `--chart-5` | 0.46 0.14 300 * | 0.55 0.13 300 * | violet |
 
-```css
---background: oklch(1 0 0);
---surface: oklch(0.99 0.001 200);
---foreground: oklch(0.15 0.005 200);
---muted: oklch(0.95 0.003 200);
---muted-foreground: oklch(0.49 0.01 200);
---border: oklch(0.90 0.003 200);
---input: oklch(0.90 0.003 200);
---primary: oklch(0.55 0.16 200);
---primary-foreground: oklch(0.98 0 0);
---accent: oklch(0.62 0.15 75);
---accent-foreground: oklch(0.98 0 0);
---destructive: oklch(0.55 0.20 25);
---destructive-foreground: oklch(0.98 0 0);
---success: oklch(0.55 0.15 155);
---success-foreground: oklch(0.98 0 0);
---ring: oklch(0.55 0.16 200);
---chart-1: oklch(0.55 0.15 200);
---chart-2: oklch(0.65 0.15 75);
---chart-3: oklch(0.50 0.15 155);
---chart-4: oklch(0.55 0.16 290);
---chart-5: oklch(0.55 0.17 15);
---sidebar-background: oklch(0.97 0.003 200);
---sidebar-foreground: oklch(0.25 0.005 200);
---sidebar-primary: oklch(0.55 0.16 200);
---sidebar-primary-foreground: oklch(0.98 0 0);
---sidebar-accent: oklch(0.93 0.004 200);
---sidebar-accent-foreground: oklch(0.15 0.005 200);
---sidebar-border: oklch(0.90 0.003 200);
---sidebar-ring: oklch(0.55 0.16 200);
-```
+Light success / warning / info were darkened (from 0.53 / 0.62 / 0.53) so
+their text passes 4.5:1 on a 10% tint of themselves, which is how status
+badges render. The charts keep the brighter amber since chart marks only need
+3:1. Dark-mode semantic fills take dark text, because white on L 0.66–0.8
+fails.
 
-Rules: primary/accent/destructive/success always take white (near-`oklch(0.98
-0 0)`) foreground text on filled use — all sit in the saturated
-mid-luminance band. Never gray text on a colored fill; never a hard-coded hex
-color outside these tokens.
+### Measured contrast (in the browser, 2026-10-19)
+
+| Pair | Light | Dark |
+|---|---|---|
+| foreground / background | 17.4 | 16.7 |
+| muted-foreground / background | 6.6 | 7.2 |
+| muted-foreground / surface | 6.9 | 6.8 |
+| muted-foreground / sidebar | 6.2 | 7.4 |
+| muted-foreground / muted (skeleton, kbd) | 6.0 | 6.3 |
+| primary / surface (links) | 4.8 | 6.4 |
+| primary-foreground / primary (buttons) | 4.7 | 6.3 |
+| badge text on its 10% tint (worst of the five) | 4.6 | 4.5+ |
+| destructive / surface | 5.9 | 5.3 |
+
+Hairline borders (`--border`, `--input`) are intentionally low contrast:
+they're decoration, not the only cue. Anything whose boundary *is* the cue
+(text fields, selects, checkboxes, the off switch track) uses
+`--control-border` instead, measured for WCAG 1.4.11 (non-text ≥ 3:1):
+
+| `--control-border` against | Light | Dark |
+|---|---|---|
+| background | 3.78 | 3.81 |
+| surface | 3.94 | 3.57 |
+| sidebar | 3.57 | 3.91 |
+| popover (sheets) | 3.94 | 3.44 |
+| muted | 3.45 | 3.29 |
+| white switch thumb on the off track | 3.94 | 5.07 |
+
+(The old `--input` border measured 1.48 / 1.43 against surface.) The focus
+ring is terracotta at 4.6:1 (light) and 6.8:1 (dark). Invalid controls
+(`aria-invalid="true"`) switch to a crimson border, plus a crimson ring on
+focus.
+
+### Charts (Task 3)
+
+Categorical order is **chart-1 → chart-2 → chart-5** (terracotta, slate,
+violet), assigned in that order and never cycled. Green and amber stay out of
+series colours because they read as success and warning. The values marked *
+above were moved so the three slots pass the dataviz palette validator
+(`validate_palette.js --pairs all`, since donut segments all touch):
+
+| Check | Light (on #ffffff) | Dark (on #13161c) |
+|---|---|---|
+| Lightness band | pass (0.43–0.77) | pass (0.48–0.67) |
+| Chroma ≥ 0.10 | pass | pass |
+| CVD ΔE, worst pair | 16.1 (slate↔violet, deutan) | 11.4 (slate↔violet, deutan) |
+| Normal-vision ΔE, worst pair | 19.2 | 15.4 |
+| Contrast vs surface ≥ 3:1 | pass | pass |
+
+The old slate (C 0.08) read as grey and dark terracotta/slate sat above the
+dark lightness band. More than three series in one chart means a table or
+small multiples, not a fourth hue.
+
+- One y-axis per chart; two units (naira and counts) are two charts.
+- Lines 2px, areas a 10% wash, bars ≤ 24px with a 4px rounded end, grid and
+  axis hairlines solid in `--border`, axis text muted.
+- Every chart panel (`components/charts/chart-panel.tsx`) has a legend, a
+  Chart / Table switch, and keeps the previous render at 60% opacity while a
+  new range loads.
+- Sequential (heatmap): `--chart-1` at five alphas over the surface
+  (0.3, 0.48, 0.64, 0.82, 1), so dark mode gets dim-to-bright steps from the
+  same token. The first step is 1.5:1 against the surface in both themes and
+  each step is at least 1.3:1 against the next. Zero is a hollow cell (1px
+  `--input` ring), not a fill.
+- Partial periods (today so far, a week or month the range cuts) are drawn
+  dashed (lines, areas) or at 40% (bars), and say "(so far)" or "(partial)"
+  in tooltips and table rows; the panel description says why.
+- Two series on very different scales (processed vs net revenue) are two
+  stacked charts sharing the date axis and hover, never one axis or two.
+- Rates change in percentage points ("+0.3 pp"), not relative percent.
+- Tooltips: value in mono semibold first, series name muted, a short line key.
 
 ## Typography
 
-**Geist Sans** for UI text, **Geist Mono** for every number: currency
-amounts, counts, dates in tables, IDs/references, chart axis labels. This is
-the single biggest lever for the "ledger, not SaaS" feel — figures get
-tabular alignment and a technical, precise texture that generic admin
-templates don't bother with. Both ship via the `geist` package (already used
-elsewhere in the Ticketer Africa stack), loaded locally via `next/font`, no
-external font request.
+**Geist Sans** for all UI, **Geist Mono** with tabular numbers for every
+amount, count, table date, reference and code (the `.num` utility). Both load
+locally via the `geist` package. No display fonts. The wordmark is Geist
+semibold (Clash Grotesk is only served from Fontshare's CDN, so it isn't used
+here).
 
-- Page titles: Geist Sans, semibold, tight tracking.
-- Body / labels / nav: Geist Sans, regular/medium.
-- All monetary figures, counts, table numeric columns, chart values: Geist
-  Mono with `font-variant-numeric: tabular-nums`.
+Fixed scale, base 14px, ratio ≈ 1.15 (Tailwind sizes are remapped):
 
-## Layout & Components
+| Class | Size / line | Use |
+|---|---|---|
+| `text-xs` | 12 / 16 | table headers, badges, group labels, kbd |
+| `text-sm` | 13 / 20 | table cells, buttons, menus, nav |
+| `text-base` | 14 / 22 | body (the `body` default), descriptions |
+| `text-lg` | 16 / 24 | phone top-bar title, sheet titles |
+| `text-xl` | 18 / 26 | |
+| `text-2xl` | 22 / 28, -0.01em | page titles (semibold) |
+| `text-3xl` | 28 / 34 | rare big figures |
 
-- **Sidebar recedes, content is the workspace.** Sidebar background sits one
-  step darker (dark mode) / one step cooler-light (light mode) than the main
-  content area, creating depth without a heavy border or shadow.
-- **Overview avoids the uniform stat-card grid.** Identical repeated cards
-  are the SaaS-dashboard cliché this project explicitly rejects. Instead:
-  one wide **ledger panel** for the three headline financial figures (total
-  processed, lifetime profit, platform wallet balance) as divided rows with
-  mono figures and a one-line description each, and a compact **stat strip**
-  (not cards) for the four operational counts (users, events, tickets,
-  organizer wallet total).
-- **Tables carry the weight.** Rows get a subtle hover state using `muted`;
-  numeric/currency columns are right-aligned and monospaced; status uses the
-  `success`/`accent`(warning)/`destructive` tokens consistently everywhere a
-  status appears (transactions, events).
-- Radius stays close to the existing scale (`--radius: 0.75rem` base) —
-  precise, not soft/bubbly. Slightly tighter than the original 1rem default.
+Inputs use 16px on phones (iOS zooms on focus below that) and 13px from 768px.
+
+## Shape, depth and spacing
+
+- `--radius: 0.5rem`. Panels 8px (`rounded-lg`), controls 6px (`rounded-md`),
+  chips 4px. `rounded-xl/2xl` are capped at 8px so older pages stay in line.
+- Surfaces are flat: 1px border, no shadow. Only overlays (menus, popovers,
+  sheets, the palette, toasts) get `shadow-overlay`.
+- Never nest panels.
+- z-index scale: `sticky 20 · nav 30 · overlay 40 · sheet 50 · popover 60 ·
+  toast 70 · tooltip 80`.
 
 ## Motion
 
-Restrained and functional: 150–200ms ease-out-quart on hover/focus/state
-transitions, a short fade+slide on route content, respecting
-`prefers-reduced-motion` throughout (crossfade fallback). No bounce, no
-decorative motion unconnected to a state change.
+State only. 160ms `cubic-bezier(0.25, 1, 0.5, 1)` (ease-out-quart; Tailwind's
+`ease-out` and default `transition` now mean this) for hover, focus and state.
+Sheets slide in 220ms; menus and the palette fade/scale from 98% in 150ms.
+The sidebar's width only animates when the person toggles it.
+`prefers-reduced-motion`: slides and zooms become plain fades (globals.css
+zeroes tailwindcss-animate's translate/scale variables), the switch thumb
+jumps.
+
+## Components (`components/ui`)
+
+Button (`primary`, `secondary`/`outline`, `ghost`, `muted`, `destructive`,
+`destructive-outline`, `link`; sizes `sm`, `default`, `lg`, `icon`,
+`icon-sm`; `loading` prop), Input, Textarea, Label, Badge (`neutral`, `outline`,
+`primary`, `success`, `warning`, `destructive`, `info`, optional `dot`),
+Table (36px header, 40px rows), Panel (+ Header/Title/Description/Content/
+Footer), Sheet (left/right/bottom, + Header/Body/Footer), Switch, Checkbox,
+Tooltip (inverted chip), Skeleton, Spinner, DropdownMenu, Popover, Select,
+Tabs (underline), Segmented (radio-group semantics, arrow keys), Command
+(cmdk), Kbd, Sidebar. Floating surfaces share `menu-styles.ts`.
+
+Buttons and controls are 40px tall on phones and 32px (28px small) from
+768px, so tap targets are never smaller than 40px.
+
+## Shell (`components/shell`)
+
+- **Desktop ≥1024px:** 240px sidebar, collapsible to 52px icons (⌘B / Ctrl B,
+  or the Collapse row at the bottom); the choice is kept in the
+  `sidebar_state` cookie. Groups follow `nav-config.ts` (Overview, Analytics ·
+  Money · Platform · Control · Scan tickets). The active row gets a neutral
+  fill, medium weight and a terracotta icon. Collapsed rows show a tooltip;
+  group labels become hairlines.
+- **Tablet 768–1023px:** the sidebar starts collapsed to icons every visit.
+- **Top bar (48px, sticky):** breadcrumb (group / page / Details), search
+  trigger with ⌘K, theme menu, account menu.
+- **Phone <768px:** top bar with menu button (opens the nav sheet), the page
+  title (it fades in once the page's own title scrolls under the bar), and a
+  search icon. A bottom tab bar holds Overview, Search (palette), Approvals
+  (count badge), Scan, More (nav sheet). The nav sheet also has the account,
+  a theme segmented control and Sign out.
+- **Command palette:** ⌘K / Ctrl K anywhere; jumps to any page and switches
+  theme. Record search arrives with the v2 search endpoint.
+- **Focus return:** the palette and the nav sheet open from state, not from a
+  Radix Trigger, so `lib/focus-return.ts` records the opener and refocuses it
+  on close. Pass the clicked element as the second argument
+  (`setOpen(true, event.currentTarget)`, `setOpenMobile(true, el)`) because
+  Safari doesn't focus clicked buttons.
+- **PageHeader:** 22px semibold title, one-line muted description, actions on
+  the right (below on phones).
+- A small amber tag next to the wordmark (and on the login page) says
+  `staging` or `local` whenever the API isn't production.
+
+## Rules
+
+- Never a hard-coded colour outside these tokens; never grey text on a
+  coloured fill.
+- No side-stripe borders, gradient text, glass, hero-metric template,
+  identical stat-card grids, or uppercase tracked eyebrows over sections.
+- Actions use sheets and inline confirms, not modal dialogs.
+- Money is always naira, `₦1,234.56`, in `.num`.

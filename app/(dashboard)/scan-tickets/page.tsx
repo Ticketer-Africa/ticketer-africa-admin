@@ -1,27 +1,28 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CancelCircleIcon } from "@hugeicons/core-free-icons";
+import { QRCameraScanner } from "@/components/qr-camera-scanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { parseTicketData, type QRTicketData } from "@/lib/qr-utils";
-import { useVerifyTicket } from "@/services/admin/tickets.queries";
-import { formatDate, formatPrice } from "@/lib/helpers";
-import { toast } from "sonner";
-import { QRCameraScanner } from "@/components/qr-camera-scanner";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Alert01Icon,
-  Calendar01Icon,
-  CancelCircleIcon,
-  CheckmarkCircle01Icon,
-  Location01Icon,
-  Ticket01Icon,
-} from "@hugeicons/core-free-icons";
+import { Segmented } from "@/components/ui/segmented";
+import { Spinner } from "@/components/ui/spinner";
+import { extractTicketData, parseTicketData } from "@/lib/qr-utils";
+import { useVerifyTicket } from "@/services/v2/tickets";
+import { toApiError } from "@/services/v2/client";
+import { useTicket } from "@/services/v2/tickets";
 import type { TicketVerifyResult } from "@/types/tickets.type";
+import { ScanResult } from "./scan-result";
+
+const MODE_OPTIONS = [
+  { value: "camera", label: "Camera" },
+  { value: "manual", label: "Paste code" },
+] as const;
+
+type Mode = (typeof MODE_OPTIONS)[number]["value"];
 
 export default function ScanTicketsPage() {
   return (
@@ -38,61 +39,51 @@ function ScanTicketsContent() {
   const { mutateAsync: verifyTicket, isPending: isVerifying } = useVerifyTicket();
 
   const [verification, setVerification] = useState<TicketVerifyResult | null>(null);
-  const [ticketData, setTicketData] = useState<QRTicketData | null>(null);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState<"camera" | "manual">("camera");
+  const [mode, setMode] = useState<Mode>("camera");
   const [scannerActive, setScannerActive] = useState(true);
   const [manualInput, setManualInput] = useState("");
   // Guards against re-verifying when we update the URL ourselves after a camera scan.
   const skipNextSearchParamsEffect = useRef(false);
 
-  const handleVerify = async (dataParam: string) => {
-    try {
-      setError("");
-      const parsedData = parseTicketData(dataParam);
-      if (!parsedData || !parsedData.eventId) {
-        setError("Invalid ticket data");
-        toast.error("Invalid ticket data", {
-          description: "The scanned QR code could not be read. Please try again.",
+  // The event name and owner aren't in the verify response; the ticket's
+  // own record has them. The scan result never waits for it.
+  const ticket = useTicket(verification?.ticketId);
+
+  const handleVerify = useCallback(
+    async (dataParam: string) => {
+      try {
+        setError("");
+        const parsedData = parseTicketData(dataParam);
+        if (!parsedData) {
+          setError("That isn't a Ticketer Africa ticket code. Scan the QR code on the ticket, or paste its data or link.");
+          return;
+        }
+        const response = await verifyTicket({
+          ticketId: parsedData.ticketId,
+          code: parsedData.code,
+          eventId: parsedData.eventId,
         });
-        return;
+        setVerification(response);
+      } catch (raw) {
+        const apiError = await toApiError(raw);
+        setError(apiError.message);
+        toast.error("Verification failed", { description: apiError.message });
       }
+    },
+    [verifyTicket],
+  );
 
-      setTicketData(parsedData);
-
-      const response = await verifyTicket({
-        ticketId: parsedData.ticketId,
-        code: parsedData.code,
-        eventId: parsedData.eventId,
-      });
-
-      setVerification(response);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Verification failed. Please try again.");
-      toast.error("Verification failed", {
-        description: err?.response?.data?.message || err?.message || "Please try again.",
-      });
-    }
-  };
-
-  const handleCameraScan = (rawText: string) => {
-    setScannerActive(false);
-
-    let dataParam = rawText;
-    try {
-      const url = new URL(rawText);
-      dataParam = url.searchParams.get("data") || rawText;
-    } catch {
-      // rawText is not a URL — treat it as the raw data string
-    }
-
-    skipNextSearchParamsEffect.current = true;
-    router.replace(`${pathname}?data=${encodeURIComponent(dataParam)}`, {
-      scroll: false,
-    });
-
-    handleVerify(dataParam);
-  };
+  const handleCameraScan = useCallback(
+    (rawText: string) => {
+      setScannerActive(false);
+      const dataParam = extractTicketData(rawText);
+      skipNextSearchParamsEffect.current = true;
+      router.replace(`${pathname}?data=${encodeURIComponent(dataParam)}`, { scroll: false });
+      void handleVerify(dataParam);
+    },
+    [handleVerify, pathname, router],
+  );
 
   // Supports deep-linking straight to a verification result via ?data=
   useEffect(() => {
@@ -104,248 +95,110 @@ function ScanTicketsContent() {
     if (dataParam) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing scanner UI to a URL param read on mount
       setScannerActive(false);
-      handleVerify(dataParam);
+      void handleVerify(dataParam);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, handleVerify]);
 
-  const handleManualSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualInput.trim()) return;
-    handleVerify(manualInput.trim());
-  };
+  function handleManualSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const text = manualInput.trim();
+    if (!text) return;
+    const dataParam = extractTicketData(text);
+    skipNextSearchParamsEffect.current = true;
+    router.replace(`${pathname}?data=${encodeURIComponent(dataParam)}`, { scroll: false });
+    void handleVerify(dataParam);
+  }
 
-  const handleScanNext = () => {
+  function changeMode(next: Mode) {
+    setMode(next);
+    setScannerActive(next === "camera");
+  }
+
+  function handleScanNext() {
     setVerification(null);
-    setTicketData(null);
     setError("");
     setManualInput("");
     setMode("camera");
     setScannerActive(true);
     skipNextSearchParamsEffect.current = true;
     router.replace(pathname, { scroll: false });
-  };
-
-  const ticket = verification;
+  }
 
   if (isVerifying) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Verifying ticket…</p>
-        </div>
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-muted-foreground"
+      >
+        <Spinner className="size-8" />
+        <p className="text-base">Checking the ticket…</p>
       </div>
     );
   }
 
-  if (mode === "camera" && !verification && !error) {
+  if (verification) {
+    return <ScanResult result={verification} ticket={ticket} onScanNext={handleScanNext} />;
+  }
+
+  if (error) {
     return (
-      <div className="mx-auto max-w-md space-y-4 py-4">
-        <div className="text-center">
-          <h2 className="mb-1 text-lg font-semibold">Scan Ticket</h2>
-          <p className="text-sm text-muted-foreground">
-            Point the camera at a ticket QR code
-          </p>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-3 shadow-sm">
-          <QRCameraScanner onScan={handleCameraScan} active={scannerActive} />
-        </div>
-        <div className="text-center">
-          <button
-            onClick={() => {
-              setScannerActive(false);
-              setMode("manual");
-            }}
-            className="text-sm text-foreground underline"
+      <div className="mx-auto w-full max-w-md space-y-4">
+        <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-5 text-center">
+          <HugeiconsIcon icon={CancelCircleIcon} aria-hidden="true" className="mx-auto size-14 text-destructive" />
+          <h1
+            data-page-title=""
+            tabIndex={-1}
+            className="mt-3 text-[1.75rem] font-semibold leading-tight tracking-[-0.01em] text-foreground focus:outline-none"
           >
-            Enter code manually instead
-          </button>
+            Couldn&apos;t check this ticket
+          </h1>
+          <p className="mt-1 break-words text-base text-foreground">{error}</p>
         </div>
-      </div>
-    );
-  }
-
-  if (mode === "manual" && !verification && !error) {
-    return (
-      <div className="mx-auto max-w-md space-y-4 py-4">
-        <div className="text-center">
-          <h2 className="mb-1 text-lg font-semibold">Enter Ticket Data</h2>
-          <p className="text-sm text-muted-foreground">
-            Paste the scanned QR data or verification link
-          </p>
-        </div>
-        <form onSubmit={handleManualSubmit} className="space-y-3">
-          <Input
-            value={manualInput}
-            onChange={(e) => setManualInput(e.target.value)}
-            placeholder="Paste ticket QR data"
-          />
-          <div className="flex gap-2">
-            <Button type="submit" variant="primary" className="flex-1">
-              Verify
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                setMode("camera");
-                setScannerActive(true);
-              }}
-            >
-              Use camera instead
-            </Button>
-          </div>
-        </form>
-      </div>
-    );
-  }
-
-  if (error || !ticketData) {
-    return (
-      <div className="mx-auto max-w-md py-4">
-        <Card className="border-destructive/40">
-          <CardHeader className="text-center">
-            <HugeiconsIcon icon={CancelCircleIcon} className="mx-auto mb-4 h-16 w-16 text-destructive" />
-            <CardTitle className="text-destructive">Verification Failed</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-center">
-            <p className="text-sm text-muted-foreground">{error || "Invalid ticket data"}</p>
-            <div className="flex justify-center gap-2">
-              <Button variant="outline" onClick={handleScanNext}>
-                Scan Another Ticket
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <Button variant="primary" size="lg" className="w-full" onClick={handleScanNext}>
+          Try again
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl py-4">
-      <Card className={verification?.isValid ? "border-success/50" : "border-destructive/40"}>
-        <CardHeader className="text-center">
-          {verification?.isValid ? (
-            <>
-              <HugeiconsIcon icon={CheckmarkCircle01Icon} className="mx-auto mb-4 h-16 w-16 text-success" />
-              <CardTitle className="text-success">Ticket Valid ✓</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {verification.message || "This ticket has been successfully verified"}
-              </p>
-            </>
-          ) : (
-            <>
-              <HugeiconsIcon icon={CancelCircleIcon} className="mx-auto mb-4 h-16 w-16 text-destructive" />
-              <CardTitle className="text-destructive">Invalid Ticket ✗</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {verification?.message || "This ticket could not be verified"}
-              </p>
-            </>
-          )}
-        </CardHeader>
+    <div className="mx-auto w-full max-w-md space-y-4">
+      <header className="text-center">
+        <h1
+          data-page-title=""
+          className="text-2xl font-semibold tracking-[-0.01em] text-foreground focus:outline-none"
+        >
+          Scan tickets
+        </h1>
+        <p className="mt-1 text-base text-muted-foreground">
+          {mode === "camera"
+            ? "Point the camera at the ticket's QR code."
+            : "Paste the ticket's QR data or verification link."}
+        </p>
+      </header>
 
-        <CardContent className="space-y-6">
-          <div className="rounded-xl border border-border bg-muted p-4">
-            <h3 className="mb-3 flex items-center font-semibold">
-              <HugeiconsIcon icon={Alert01Icon} className="mr-2 h-4 w-4 text-muted-foreground" />
-              Verification Details
-            </h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Ticket Code:</span>
-                <p className="font-mono">{ticketData.code || ticket?.code || "N/A"}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Event ID:</span>
-                <p className="font-mono">{ticketData.eventId}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Status:</span>
-                <div>
-                  <Badge variant={verification?.isValid ? "success" : "destructive"}>
-                    {verification?.isValid ? "Valid" : "Invalid"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </div>
+      <Segmented block aria-label="How to enter the ticket" value={mode} onValueChange={changeMode} options={MODE_OPTIONS} />
 
-          {verification?.event && (
-            <div className="space-y-4">
-              <h3 className="font-semibold">Event Information</h3>
-              <div className="flex items-start space-x-4">
-                {verification.event.bannerUrl && (
-                  <Image
-                    src={verification.event.bannerUrl}
-                    alt={verification.event.name}
-                    width={80}
-                    height={80}
-                    className="size-20 shrink-0 rounded-xl border border-border object-cover"
-                  />
-                )}
-                <div className="flex-1 space-y-2">
-                  <h4 className="text-lg font-semibold">{verification.event.name}</h4>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <div className="flex items-center space-x-2">
-                      <HugeiconsIcon icon={Calendar01Icon} className="h-4 w-4" />
-                      <span>{formatDate(new Date(verification.event.date))}</span>
-                    </div>
-                    {verification.event.venueName && (
-                      <div className="flex items-center space-x-2">
-                        <HugeiconsIcon icon={Location01Icon} className="h-4 w-4" />
-                        <span>{verification.event.venueName}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {ticket && (
-            <div className="space-y-4">
-              <h3 className="flex items-center font-semibold">
-                <HugeiconsIcon icon={Ticket01Icon} className="mr-2 h-4 w-4" />
-                Ticket Information
-              </h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Category:</span>
-                  <p className="font-semibold">{ticket.ticketCategory?.name || "N/A"}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Category Price:</span>
-                  <p className="font-semibold">
-                    {ticket.ticketCategory?.price ? formatPrice(ticket.ticketCategory.price) : "Free"}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Ticket Status:</span>
-                  <div>
-                    <Badge variant={ticket.markedUsed ? "secondary" : "success"}>
-                      {ticket.markedUsed ? "Used" : "Active"}
-                    </Badge>
-                  </div>
-                </div>
-                {ticket.resalePrice && (
-                  <div>
-                    <span className="text-muted-foreground">Listed for:</span>
-                    <p className="font-semibold">₦{formatPrice(ticket.resalePrice)}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-            <Button variant="primary" className="flex-1" onClick={handleScanNext}>
-              Scan Next Ticket
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {mode === "camera" ? (
+        <QRCameraScanner onScan={handleCameraScan} active={scannerActive} />
+      ) : (
+        <form onSubmit={handleManualSubmit} className="space-y-3">
+          <Input
+            autoFocus
+            value={manualInput}
+            onChange={(event) => setManualInput(event.target.value)}
+            placeholder="Paste ticket QR data or link"
+            aria-label="Ticket QR data or link"
+            autoComplete="off"
+            spellCheck={false}
+            className="num"
+          />
+          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={!manualInput.trim()}>
+            Check ticket
+          </Button>
+        </form>
+      )}
     </div>
   );
 }

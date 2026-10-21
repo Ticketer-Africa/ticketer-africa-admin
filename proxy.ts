@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+/** /login, remembering where the person was going (checked by safeNextPath on login). */
+function loginRedirect(req: NextRequest, error?: string) {
+  const url = new URL("/login", req.url);
+  const { pathname, search } = req.nextUrl;
+  if (pathname !== "/") url.searchParams.set("next", `${pathname}${search}`);
+  if (error) url.searchParams.set("error", error);
+  return NextResponse.redirect(url);
+}
+
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
@@ -21,21 +30,19 @@ export async function proxy(req: NextRequest) {
     });
 
     if (res.status !== 200) {
-      return NextResponse.redirect(new URL("/login", req.url));
+      return loginRedirect(req);
     }
 
     const data = await res.json();
     const role = data?.user?.role;
 
     if (role !== "ADMIN" && role !== "SUPERADMIN") {
-      return NextResponse.redirect(
-        new URL("/login?error=unauthorized", req.url),
-      );
+      return loginRedirect(req, "unauthorized");
     }
 
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return loginRedirect(req);
   }
 }
 
