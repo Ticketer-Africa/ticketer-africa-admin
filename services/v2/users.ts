@@ -80,3 +80,7 @@ export const unsuspendUser = (id: string, reason: string) =>
 
 /** Tier 1: only for accounts that haven't verified their email yet. */
 export const resendSignupCode = (id: string) => adminPost<unknown>(`/users/${id}/resend-otp`);
+
+/** Tier 2: between USER and ORGANIZER only. Admin roles go through an approval request. */
+export const changeUserRole = (id: string, role: "USER" | "ORGANIZER", reason: string) =>
+  adminPost<unknown>(`/users/${id}/role`, { role, reason });

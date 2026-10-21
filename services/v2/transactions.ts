@@ -174,11 +174,16 @@ interface SearchHit {
  * event, which is how the filter shows the name of an event from the URL.
  */
 export function useEventOptions(q: string) {
+  return useSearchOptions("events", q);
+}
+
+/** One group of the global search (2+ characters), for pickers and filters. */
+export function useSearchOptions(group: "events" | "organizers", q: string) {
   const term = q.trim();
   return useQuery({
-    queryKey: ["v2", "search", "events", term],
+    queryKey: ["v2", "search", group, term],
     queryFn: () =>
-      adminGet<{ events: SearchHit[] }>("/search", { q: term }).then((r) => r.events),
+      adminGet<Record<typeof group, SearchHit[]>>("/search", { q: term }).then((r) => r[group]),
     enabled: term.length >= 2,
     staleTime: 60_000,
     placeholderData: keepPreviousData,

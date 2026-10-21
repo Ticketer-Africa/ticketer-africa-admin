@@ -13,23 +13,27 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { useEventOptions } from "@/services/v2/transactions";
+import { useSearchOptions } from "@/services/v2/transactions";
 
 const ANY = "__any__";
 
 interface EventFilterProps {
-  /** The selected event id. */
+  /** The selected event (or organizer) id. */
   value: string | undefined;
+  /** What it searches; organizers come from the same search endpoint. */
+  kind?: "event" | "organizer";
   onChange: (eventId: string | undefined) => void;
   className?: string;
 }
 
 /**
- * "Event: Any" pill that opens a search box over events (name or slug,
- * 2+ characters). The selected event's name is looked up by its id, so a
+ * "Event: Any" (or "Organizer: Any") pill that opens a search box (name,
+ * 2+ characters). The selected one's name is looked up by its id, so a
  * pasted link shows the name too.
  */
-export function EventFilter({ value, onChange, className }: EventFilterProps) {
+export function EventFilter({ value, onChange, kind = "event", className }: EventFilterProps) {
+  const group = kind === "organizer" ? "organizers" : "events";
+  const noun = kind === "organizer" ? "Organizer" : "Event";
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
   const [query, setQuery] = useState("");
@@ -38,12 +42,12 @@ export function EventFilter({ value, onChange, className }: EventFilterProps) {
     const timer = setTimeout(() => setQuery(term), 250);
     return () => clearTimeout(timer);
   }, [term]);
-  const results = useEventOptions(query);
+  const results = useSearchOptions(group, query);
   // An exact id search returns that event first.
-  const selected = useEventOptions(value ?? "");
+  const selected = useSearchOptions(group, value ?? "");
   const selectedName = value
     ? (selected.data?.find((event) => event.id === value)?.title ??
-      (selected.isPending || selected.isPlaceholderData ? "Loading…" : "Unknown event"))
+      (selected.isPending || selected.isPlaceholderData ? "Loading…" : `Unknown ${noun.toLowerCase()}`))
     : undefined;
 
   function choose(next: string | undefined) {
@@ -60,14 +64,14 @@ export function EventFilter({ value, onChange, className }: EventFilterProps) {
       <PopoverTrigger asChild>
         <Button
           variant="secondary"
-          aria-label={`Event: ${selectedName ?? "Any event"}`}
+          aria-label={`${noun}: ${selectedName ?? `Any ${noun.toLowerCase()}`}`}
           className={cn(
             "min-w-0 max-w-full justify-start",
             value && "border-primary/60 bg-primary/5",
             className,
           )}
         >
-          <span className="text-muted-foreground">Event</span>
+          <span className="text-muted-foreground">{noun}</span>
           <span
             className={cn(
               "max-w-[14rem] truncate",
@@ -79,18 +83,18 @@ export function EventFilter({ value, onChange, className }: EventFilterProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[min(22rem,calc(100vw-2rem))] p-0">
-        <Command shouldFilter={false} label="Find an event">
+        <Command shouldFilter={false} label={`Find ${kind === "organizer" ? "an organizer" : "an event"}`}>
           <CommandInput
             value={term}
             onValueChange={setTerm}
-            placeholder="Search events by name"
+            placeholder={`Search ${group} by name`}
             className="h-10 text-sm md:text-sm"
           />
           <CommandList className="max-h-72">
             {value && (
               <CommandGroup>
                 <CommandItem value={ANY} onSelect={() => choose(undefined)}>
-                  Any event
+                  Any {noun.toLowerCase()}
                 </CommandItem>
               </CommandGroup>
             )}
@@ -100,16 +104,16 @@ export function EventFilter({ value, onChange, className }: EventFilterProps) {
               </p>
             ) : results.isError ? (
               <p role="alert" className="px-3 py-6 text-center text-sm text-destructive">
-                Couldn&apos;t search events. Try again.
+                Couldn&apos;t search {group}. Try again.
               </p>
             ) : results.isPending ? (
               <p className="px-3 py-6 text-center text-sm text-muted-foreground">Searching…</p>
             ) : !results.data?.length ? (
               <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                No events match “{query.trim()}”.
+                No {group} match “{query.trim()}”.
               </p>
             ) : (
-              <CommandGroup heading="Events">
+              <CommandGroup heading={kind === "organizer" ? "Organizers" : "Events"}>
                 {results.data.map((event) => (
                   <CommandItem
                     key={event.id}

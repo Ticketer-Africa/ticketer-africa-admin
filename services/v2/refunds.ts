@@ -106,3 +106,6 @@ export const recheckRefund = (id: string) =>
   adminPost<{ refundId: string; providerStatus: string; refundStatus: RefundStatus }>(
     `/refunds/${id}/recheck`,
   );
+
+/** Korapay won't refund less than this (naira). */
+export const KORAPAY_MIN_REFUND = 100;

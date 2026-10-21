@@ -10,6 +10,9 @@ import { ErrorState } from "@/components/error-state";
 import { KeyValues } from "@/components/key-values";
 import { Money } from "@/components/money";
 import { RequestBanner } from "@/components/request-banner";
+import Link from "next/link";
+import { entityHref } from "@/components/entity-link";
+import { RoleActions } from "./role-actions";
 import { StatusBadge, userStatus } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader, PanelTitle } from "@/components/ui/panel";
@@ -36,9 +39,8 @@ import { auditKey, useRecordActivity } from "@/services/v2/audit";
 const ADMIN_ROLES = ["ADMIN", "SUPERADMIN"];
 
 /*
- * Interim user detail on /v2/admin: header, suspend / unsuspend, pending
- * requests, tickets, transactions and activity. The full page (role
- * changes, wallet) comes with the users area rebuild.
+ * A person's account: status, role, tickets, payments, wallet (organizers)
+ * and what admins have done to it.
  */
 export default function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -97,6 +99,7 @@ export default function UserDetailPage() {
               onConfirm={() => resendSignupCode(user.id)}
             />
             <SuspensionAction user={user} />
+            <RoleActions user={user} />
           </>
         }
       />
@@ -111,6 +114,31 @@ export default function UserDetailPage() {
               { label: "Reason", value: user.suspendedReason },
             ]}
           />
+        </Panel>
+      )}
+
+      {user.wallet && (
+        <Panel>
+          <PanelHeader>
+            <PanelTitle>Wallet</PanelTitle>
+            <Link
+              href={entityHref("wallet", user.id)}
+              className="text-sm font-medium text-primary-text underline-offset-4 hover:underline"
+            >
+              Ledger
+            </Link>
+          </PanelHeader>
+          <div className="p-4">
+            <KeyValues
+              items={[
+                { label: "Balance", value: <Money value={user.wallet.balance} /> },
+                { label: "Last change", value: formatDateTime(user.wallet.updatedAt), mono: true },
+                ...(user.role === "ORGANIZER"
+                  ? [{ label: "Organizer page", value: <EntityLink kind="organizer" id={user.id} label="Open" /> }]
+                  : []),
+              ]}
+            />
+          </div>
         </Panel>
       )}
 
@@ -132,7 +160,9 @@ export default function UserDetailPage() {
             <TableBody>
               {user.tickets.map((ticket) => (
                 <TableRow key={ticket.id}>
-                  <TableCell className="num text-xs">{ticket.code}</TableCell>
+                  <TableCell className="num text-xs">
+                    <EntityLink kind="ticket" id={ticket.id} label={ticket.code} mono />
+                  </TableCell>
                   <TableCell className="max-w-[16rem] truncate">
                     {ticket.event ? (
                       <EntityLink kind="event" id={ticket.event.id} label={ticket.event.name} />
