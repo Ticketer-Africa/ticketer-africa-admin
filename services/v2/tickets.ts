@@ -104,6 +104,14 @@ export const undoCheckin = (id: string) =>
   );
 
 /**
+ * Email the ticket again. With `email`, first correct where it goes (the
+ * recipient's email, or the owner's account email when there's no
+ * recipient); that change is tier 2 and needs a reason.
+ */
+export const resendTicket = (id: string, body: { email?: string; reason?: string } = {}) =>
+  adminPost<{ id: string; sentTo: string; emailCorrected: boolean }>(`/tickets/${id}/resend`, body);
+
+/**
  * Check a ticket at the gate. This is the shared check-in endpoint (not the
  * admin API): the first valid scan marks the ticket used.
  */
